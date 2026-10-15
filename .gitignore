@@ -1,0 +1,51 @@
+# ==========================================
+# Root .gitignore — eKatalog Intan Buket
+# ==========================================
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ------------------------------------------
+# Backend (Laravel)
+# ------------------------------------------
+backend/vendor/
+backend/.env
+backend/.env.backup
+backend/.env.production
+backend/storage/*.key
+backend/storage/logs/*.log
+backend/storage/framework/cache/data/*
+!backend/storage/framework/cache/data/.gitignore
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitignore
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitignore
+backend/bootstrap/cache/*.php
+!backend/bootstrap/cache/.gitignore
+.phpunit.result.cache
+
+# ------------------------------------------
+# Frontend (React / Vite)
+# ------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
