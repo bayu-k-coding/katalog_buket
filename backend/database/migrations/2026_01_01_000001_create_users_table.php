@@ -12,7 +12,7 @@ return new class extends Migration
             $table->increments('id_user');
             $table->string('nama_lengkap', 100);
             $table->string('email', 100)->unique();
-            $table->string('password');
+            $table->string('password_hash');
             $table->string('no_telepon', 20)->nullable();
             $table->text('alamat')->nullable();
             $table->string('kota', 60)->nullable();

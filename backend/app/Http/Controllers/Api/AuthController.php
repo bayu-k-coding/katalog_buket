@@ -14,15 +14,16 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:60',
-            'email' => 'required|string|email|max:60|unique:pelanggan,email',
+            'nama_lengkap' => 'required|string|max:100',
+            'email' => 'required|string|email|max:100|unique:pelanggan,email',
             'password' => 'required|string|min:6|confirmed',
-            'no_telepon' => 'nullable|string|max:16',
-            'alamat' => 'nullable|string|max:60',
-            'kota' => 'nullable|string|max:7',
-            'kode_pos' => 'nullable|string|max:5',
+            'no_telepon' => 'nullable|string|max:20',
+            'alamat' => 'nullable|string|max:500',
+            'kota' => 'nullable|string|max:60',
+            'kode_pos' => 'nullable|string|max:10',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format alamat email tidak valid.',
             'email.unique' => 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda.',
@@ -106,12 +107,17 @@ class AuthController extends Controller
 
         if ($authUser instanceof Pelanggan) {
             $validated = $request->validate([
-                'nama_lengkap' => 'required|string|max:60',
-                'no_telepon' => 'nullable|string|max:16',
-                'alamat' => 'nullable|string|max:60',
-                'kota' => 'nullable|string|max:7',
-                'kode_pos' => 'nullable|string|max:5',
-                'password_baru' => 'nullable|string|min:6',
+                'nama_lengkap' => 'required|string|max:100',
+                'no_telepon' => 'nullable|string|max:20',
+                'alamat' => 'nullable|string|max:500',
+                'kota' => 'nullable|string|max:60',
+                'kode_pos' => 'nullable|string|max:10',
+            ], [
+                'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+                'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
+                'no_telepon.max' => 'Nomor telepon maksimal 20 digit.',
+                'kota.max' => 'Nama kota maksimal 60 karakter.',
+                'kode_pos.max' => 'Kode pos maksimal 10 karakter.',
             ]);
 
             $updateData = [
@@ -122,23 +128,22 @@ class AuthController extends Controller
                 'kode_pos' => $validated['kode_pos'] ?? $authUser->kode_pos,
             ];
 
-            if (!empty($validated['password_baru'])) {
-                $updateData['password_hash'] = Hash::make($validated['password_baru']);
-            }
-
             $authUser->update($updateData);
 
             return response()->json([
-                'message' => 'Profil berhasil diperbarui',
-                'user' => $authUser,
+                'message' => 'Data profil dan alamat berhasil diperbarui.',
+                'user' => $authUser->fresh(),
             ]);
         }
 
         // Jika model User (Admin / Superadmin)
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:60',
-            'no_telepon' => 'nullable|string|max:16',
-            'password_baru' => 'nullable|string|min:6',
+            'nama_lengkap' => 'required|string|max:100',
+            'no_telepon' => 'nullable|string|max:20',
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
+            'no_telepon.max' => 'Nomor telepon maksimal 20 digit.',
         ]);
 
         $updateData = [
@@ -146,15 +151,11 @@ class AuthController extends Controller
             'no_telepon' => $validated['no_telepon'] ?? $authUser->no_telepon,
         ];
 
-        if (!empty($validated['password_baru'])) {
-            $updateData['password_hash'] = Hash::make($validated['password_baru']);
-        }
-
         $authUser->update($updateData);
 
         return response()->json([
-            'message' => 'Profil berhasil diperbarui',
-            'user' => $authUser,
+            'message' => 'Profil staf/admin berhasil diperbarui.',
+            'user' => $authUser->fresh(),
         ]);
     }
 

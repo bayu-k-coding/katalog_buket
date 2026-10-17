@@ -83,6 +83,7 @@ function App() {
                 <Route path="kategori" element={<AdminCategoriesPage />} />
                 <Route path="profil-toko" element={<AdminShopProfilePage />} />
                 <Route path="pengguna" element={<AdminUsersPage />} />
+                <Route path="profil" element={<ProfilePage isBackoffice={true} />} />
               </Route>
             </Route>
 

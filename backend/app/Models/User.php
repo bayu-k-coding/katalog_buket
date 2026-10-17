@@ -19,6 +19,9 @@ class User extends Authenticatable
         'email',
         'password_hash',
         'no_telepon',
+        'alamat',
+        'kota',
+        'kode_pos',
         'role',
         'status_aktif'
     ];

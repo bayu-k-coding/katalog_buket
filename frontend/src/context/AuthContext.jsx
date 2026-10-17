@@ -116,6 +116,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Update state data pengguna lokal dan localStorage
+   */
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+    localStorage.setItem('user', JSON.stringify(updatedUserData));
+  };
+
+  /**
+   * Refresh data profil langsung dari backend
+   */
+  const refreshProfile = async () => {
+    try {
+      const profile = await authService.getProfile();
+      setUser(profile);
+      localStorage.setItem('user', JSON.stringify(profile));
+      return profile;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const isSuperAdmin = user?.role === 'superadmin';
 
@@ -128,6 +150,8 @@ export const AuthProvider = ({ children }) => {
       login,
       register,
       logout,
+      updateUser,
+      refreshProfile,
       isAuthenticated: Boolean(token && user),
       isAdmin,
       isSuperAdmin

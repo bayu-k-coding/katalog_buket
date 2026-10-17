@@ -23,7 +23,8 @@ const AdminSidebar = () => {
     { name: 'Produk Buket', path: '/admin/produk', icon: Package },
     { name: 'Kategori Buket', path: '/admin/kategori', icon: Layers },
     { name: 'Profil Toko', path: '/admin/profil-toko', icon: Store },
-    { name: 'Kelola Pengguna', path: '/admin/pengguna', icon: Users, badge: 'Super' }
+    { name: 'Kelola Pengguna', path: '/admin/pengguna', icon: Users, badge: 'Super' },
+    { name: 'Profil Akun Saya', path: '/admin/profil', icon: User }
   ];
 
   const handleLogout = async () => {
@@ -52,17 +53,26 @@ const AdminSidebar = () => {
       </div>
 
       {/* Admin User Info Card */}
-      <div className="px-5 py-3 bg-[#FBF9F6] border-b border-borderMuted/20 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold text-xs shrink-0">
+      <Link
+        to="/admin/profil"
+        title="Buka Pengaturan Profil Saya"
+        className="px-5 py-3 bg-[#FBF9F6] hover:bg-[#F5F2EC] border-b border-borderMuted/20 flex items-center gap-3 transition-colors group cursor-pointer"
+      >
+        <div className="w-8 h-8 rounded-full bg-secondary/10 group-hover:bg-primary/20 text-secondary group-hover:text-primary flex items-center justify-center font-bold text-xs shrink-0 transition-colors">
           {user?.nama_lengkap ? user.nama_lengkap.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-gray-900 truncate">{user?.nama_lengkap || 'Admin'}</p>
-          <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase text-secondary bg-secondary/10">
-            {user?.role || 'admin'}
-          </span>
+          <p className="text-xs font-bold text-gray-900 group-hover:text-primary truncate transition-colors">
+            {user?.nama_lengkap || 'Admin'}
+          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase text-secondary bg-secondary/10">
+              {user?.role || 'admin'}
+            </span>
+            <span className="text-[10px] text-textMuted group-hover:text-primary">⚙️ Edit</span>
+          </div>
         </div>
-      </div>
+      </Link>
 
       {/* Navigation List */}
       <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
