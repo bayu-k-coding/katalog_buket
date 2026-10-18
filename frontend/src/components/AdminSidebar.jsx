@@ -14,7 +14,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 const AdminSidebar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
 
   const navItems = [
@@ -23,7 +23,9 @@ const AdminSidebar = () => {
     { name: 'Produk Buket', path: '/admin/produk', icon: Package },
     { name: 'Kategori Buket', path: '/admin/kategori', icon: Layers },
     { name: 'Profil Toko', path: '/admin/profil-toko', icon: Store },
-    { name: 'Kelola Pengguna', path: '/admin/pengguna', icon: Users, badge: 'Super' },
+    ...(isSuperAdmin
+      ? [{ name: 'Kelola Pengguna', path: '/admin/pengguna', icon: Users, badge: 'Super' }]
+      : []),
     { name: 'Profil Akun Saya', path: '/admin/profil', icon: User }
   ];
 
@@ -66,10 +68,9 @@ const AdminSidebar = () => {
             {user?.nama_lengkap || 'Admin'}
           </p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase text-secondary bg-secondary/10">
+            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase text-secondary bg-secondary/10">
               {user?.role || 'admin'}
             </span>
-            <span className="text-[10px] text-textMuted group-hover:text-primary">⚙️ Edit</span>
           </div>
         </div>
       </Link>

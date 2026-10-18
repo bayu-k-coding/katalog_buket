@@ -1,3 +1,4 @@
+import apiClient from './apiClient';
 import {
   mockCategories,
   mockProducts,
@@ -33,7 +34,30 @@ export const shopProfileService = {
 };
 
 export const userService = {
-  getAll: () => Promise.resolve({ data: mockUsers })
+  getAll: async () => {
+    const res = await apiClient.get('/admin/users');
+    return res.data;
+  },
+  getById: async (id) => {
+    const res = await apiClient.get(`/admin/users/${id}`);
+    return res.data;
+  },
+  create: async (data) => {
+    const res = await apiClient.post('/admin/users', data);
+    return res.data;
+  },
+  update: async (id, data) => {
+    const res = await apiClient.put(`/admin/users/${id}`, data);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await apiClient.delete(`/admin/users/${id}`);
+    return res.data;
+  },
+  toggleStatus: async (id) => {
+    const res = await apiClient.patch(`/admin/users/${id}/toggle-status`);
+    return res.data;
+  }
 };
 
 export default {

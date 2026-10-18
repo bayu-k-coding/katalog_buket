@@ -28,6 +28,36 @@ export const AdminRoute = () => {
 };
 
 /**
+ * Route protection wrapper khusus untuk Superadmin (Owner)
+ * Menolak akses admin staf biasa dan mengarahkan kembali ke dashboard
+ */
+export const SuperAdminRoute = () => {
+  const { isAuthenticated, isSuperAdmin, isInitializing } = useAuth();
+  const location = useLocation();
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-3 text-primary">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-textMuted">Memverifikasi hak akses Superadmin...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login?role=admin" state={{ from: location }} replace />;
+  }
+
+  if (!isSuperAdmin) {
+    return <Navigate to="/admin/dashboard?denied=superadmin_only" replace />;
+  }
+
+  return <Outlet />;
+};
+
+/**
  * Route protection wrapper untuk rute pelanggan terotentikasi
  */
 export const CustomerRoute = () => {
@@ -52,4 +82,4 @@ export const CustomerRoute = () => {
   return <Outlet />;
 };
 
-export default { AdminRoute, CustomerRoute };
+export default { AdminRoute, SuperAdminRoute, CustomerRoute };

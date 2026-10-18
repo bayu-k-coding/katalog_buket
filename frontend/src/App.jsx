@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { AdminRoute } from './components/ProtectedRoute';
+import { AdminRoute, SuperAdminRoute } from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminSidebar from './components/AdminSidebar';
@@ -82,7 +82,9 @@ function App() {
                 <Route path="produk" element={<AdminProductsPage />} />
                 <Route path="kategori" element={<AdminCategoriesPage />} />
                 <Route path="profil-toko" element={<AdminShopProfilePage />} />
-                <Route path="pengguna" element={<AdminUsersPage />} />
+                <Route element={<SuperAdminRoute />}>
+                  <Route path="pengguna" element={<AdminUsersPage />} />
+                </Route>
                 <Route path="profil" element={<ProfilePage isBackoffice={true} />} />
               </Route>
             </Route>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   TrendingUp,
   ShoppingBag,
@@ -9,18 +9,33 @@ import {
   ArrowRight,
   Clock,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  ShieldAlert
 } from 'lucide-react';
 import { mockOrders, mockProducts, mockUsers } from '../../services/mockData';
 import { formatRupiah } from '../../components/ProductCard';
 
 const AdminDashboardPage = () => {
+  const [searchParams] = useSearchParams();
+  const accessDenied = searchParams.get('denied') === 'superadmin_only';
+
   const pendingOrders = mockOrders.filter(o => o.status_pesanan === 'baru' || o.status_pembayaran === 'menunggu_verifikasi');
   const lowStockProducts = mockProducts.filter(p => p.stok <= 5);
   const totalRevenue = mockOrders.reduce((sum, o) => sum + (o.status_pembayaran === 'lunas' ? o.total_harga : 0), 0);
 
   return (
     <div className="space-y-8">
+      {/* Access Denied Notice */}
+      {accessDenied && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-center gap-3 animate-fadeIn shadow-sm">
+          <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+          <div className="text-xs">
+            <strong className="block font-bold">Akses Ditolak!</strong>
+            Halaman Manajemen Pengguna hanya dapat diakses oleh akun dengan wewenang <strong>Superadmin (Owner)</strong>.
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

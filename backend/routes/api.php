@@ -78,9 +78,14 @@ Route::prefix('admin')->group(function () {
 
     // Manajemen Profil Toko
     Route::put('/shop-profile', [ShopProfileController::class, 'update']);
+});
 
-    // Manajemen Pengguna (Superadmin)
-    Route::apiResource('users', UserController::class);
+// ==========================================
+// 4. Manajemen Pengguna (Superadmin Saja)
+// ==========================================
+Route::middleware('auth:sanctum')->group(function () {
+    Route::patch('/admin/users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
+    Route::apiResource('admin/users', UserController::class);
 });
 
 // Also expose unscoped versions for flexible frontend direct calls
@@ -94,7 +99,3 @@ Route::post('/categories', [CategoryController::class, 'store']);
 Route::put('/categories/{id}', [CategoryController::class, 'update']);
 Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 Route::put('/shop-profile', [ShopProfileController::class, 'update']);
-Route::get('/users', [UserController::class, 'index']);
-Route::post('/users', [UserController::class, 'store']);
-Route::put('/users/{id}', [UserController::class, 'update']);
-Route::delete('/users/{id}', [UserController::class, 'destroy']);
