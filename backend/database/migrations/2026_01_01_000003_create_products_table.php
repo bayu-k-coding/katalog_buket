@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('nama_produk');
-            $table->foreign('id_kategori')->references('id_kategori')->on('categories')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('id_kategori')->references('id_kategori')->on('categories')->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('created_by')->references('id_user')->on('users')->onUpdate('cascade')->onDelete('set null');
         });
     }

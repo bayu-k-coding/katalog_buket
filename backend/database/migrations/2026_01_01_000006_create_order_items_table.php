@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->unique(['id_pesanan', 'id_produk']);
             $table->foreign('id_pesanan')->references('id_pesanan')->on('orders')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreign('id_produk')->references('id_produk')->on('products')->onUpdate('cascade')->onDelete('restrict');
+            $table->foreign('id_produk')->references('id_produk')->on('products')->onUpdate('cascade')->onDelete('cascade');
         });
     }
 
