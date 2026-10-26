@@ -9,7 +9,11 @@ import {
   AlertCircle,
   Loader2,
   ShieldCheck,
-  Hash
+  Hash,
+  Lock,
+  Eye,
+  EyeOff,
+  KeyRound
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
@@ -40,6 +44,19 @@ const ProfilePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
+
+  // Form State: Ubah Kata Sandi
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    password: '',
+    password_confirmation: ''
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -98,6 +115,57 @@ const ProfilePage = () => {
     }
   };
 
+  // Submit Handler: Ubah Kata Sandi
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (passwordData.password.length < 6) {
+      setPasswordError('Kata sandi baru minimal terdiri dari 6 karakter.');
+      return;
+    }
+
+    if (passwordData.password !== passwordData.password_confirmation) {
+      setPasswordError('Konfirmasi kata sandi baru tidak cocok.');
+      return;
+    }
+
+    if (passwordData.current_password === passwordData.password) {
+      setPasswordError('Kata sandi baru harus berbeda dari kata sandi saat ini.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await authService.changePassword({
+        current_password: passwordData.current_password,
+        password: passwordData.password,
+        password_confirmation: passwordData.password_confirmation
+      });
+
+      setPasswordSuccess(response?.message || 'Kata sandi akun Anda berhasil diperbarui.');
+      setPasswordData({
+        current_password: '',
+        password: '',
+        password_confirmation: ''
+      });
+      setTimeout(() => setPasswordSuccess(''), 5000);
+    } catch (err) {
+      let msg = 'Gagal memperbarui kata sandi akun.';
+      if (err.response?.data?.errors) {
+        const firstKey = Object.keys(err.response.data.errors)[0];
+        msg = err.response.data.errors[firstKey][0];
+      } else if (err.response?.data?.message) {
+        msg = err.response.data.message;
+      }
+      setPasswordError(msg);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   const getRoleBadge = (role) => {
     switch (role) {
       case 'superadmin':
@@ -132,12 +200,12 @@ const ProfilePage = () => {
         </h1>
         <p className="text-textMuted text-xs sm:text-sm mt-1">
           {isAdminOrSuper
-            ? 'Kelola informasi identitas dan kontak akun Anda'
-            : 'Kelola data diri dan alamat pengiriman pesanan Anda'}
+            ? 'Kelola informasi identitas, kontak, dan keamanan sandi akun Anda'
+            : 'Kelola data diri, alamat pengiriman, dan keamanan sandi akun Anda'}
         </p>
       </div>
 
-      {/* Alert Notifikasi */}
+      {/* Alert Notifikasi Profil */}
       {profileSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -173,6 +241,22 @@ const ProfilePage = () => {
 
       {/* Form Data Diri Card */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl border border-borderMuted/40 shadow-soft">
+        <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <User className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <h2 className="font-playfair font-bold text-base sm:text-lg text-gray-900">
+              Informasi Data Diri
+            </h2>
+            <p className="text-xs text-textMuted">
+              {isAdminOrSuper
+                ? 'Kelola informasi identitas nama dan kontak Anda'
+                : 'Kelola informasi identitas dan alamat pengiriman pesanan'}
+            </p>
+          </div>
+        </div>
+
         <form onSubmit={handleProfileSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Nama Lengkap */}
@@ -291,6 +375,144 @@ const ProfilePage = () => {
                 </>
               ) : (
                 <span>Simpan Perubahan</span>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Form Ubah Kata Sandi Card */}
+      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-borderMuted/40 shadow-soft">
+        <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <KeyRound className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <h2 className="font-playfair font-bold text-base sm:text-lg text-gray-900">
+              Ubah Sandi Akun
+            </h2>
+            <p className="text-xs text-textMuted">
+              Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan akses
+            </p>
+          </div>
+        </div>
+
+        {/* Alert Notifikasi Password */}
+        {passwordSuccess && (
+          <div className="mb-5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="text-xs font-semibold">{passwordSuccess}</span>
+          </div>
+        )}
+
+        {passwordError && (
+          <div className="mb-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span className="text-xs font-semibold">{passwordError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <div className="space-y-4">
+            {/* Kata Sandi Saat Ini */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Kata Sandi Saat Ini *
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  required
+                  value={passwordData.current_password}
+                  onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                  placeholder="Masukkan kata sandi saat ini"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-borderMuted/60 text-xs text-gray-900 focus:outline-none focus:border-primary transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                  tabIndex={-1}
+                >
+                  {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Kata Sandi Baru */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Kata Sandi Baru *
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={passwordData.password}
+                    onChange={(e) => setPasswordData({ ...passwordData, password: e.target.value })}
+                    placeholder="Minimal 6 karakter"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-borderMuted/60 text-xs text-gray-900 focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Konfirmasi Kata Sandi Baru */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Ulangi Kata Sandi Baru *
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={passwordData.password_confirmation}
+                    onChange={(e) => setPasswordData({ ...passwordData, password_confirmation: e.target.value })}
+                    placeholder="Ulangi kata sandi baru"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-borderMuted/60 text-xs text-gray-900 focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-3 flex justify-end">
+            <button
+              type="submit"
+              disabled={isChangingPassword}
+              className="inline-flex items-center gap-2 py-2.5 px-5 bg-primary text-white font-bold text-xs rounded-xl hover:bg-primary-hover shadow-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+            >
+              {isChangingPassword ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Menyimpan Sandi...</span>
+                </>
+              ) : (
+                <>
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Ubah Kata Sandi</span>
+                </>
               )}
             </button>
           </div>

@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { AdminRoute, SuperAdminRoute } from './components/ProtectedRoute';
+import { AdminRoute, SuperAdminRoute, GuestRoute } from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminSidebar from './components/AdminSidebar';
@@ -67,10 +67,14 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/pesanan-saya" element={<OrdersPage />} />
               <Route path="/profil" element={<ProfilePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+              {/* Guest Only Routes (Tidak dapat diakses jika sudah login) */}
+              <Route element={<GuestRoute />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+              </Route>
             </Route>
 
             {/* Admin Backoffice Routes (Protected by AdminRoute) */}

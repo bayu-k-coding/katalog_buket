@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -11,8 +11,20 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { login, isLoading } = useAuth();
+  const { user, isAuthenticated, isInitializing, login, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect otomatis jika akun sudah terotentikasi (mencegah kembali ke login)
+  useEffect(() => {
+    if (!isInitializing && isAuthenticated) {
+      if (user?.role === 'admin' || user?.role === 'superadmin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || '/katalog';
+        navigate(from, { replace: true });
+      }
+    }
+  }, [isInitializing, isAuthenticated, user, navigate, location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +45,18 @@ const LoginPage = () => {
       setErrorMessage(res.error || 'Email atau password yang Anda masukkan salah.');
     }
   };
+
+  // Jangan render form login jika sesi sedang dimuat atau sudah login
+  if (isInitializing || isAuthenticated) {
+    return (
+      <div className="min-h-[85vh] flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-3 text-primary">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="text-xs font-semibold text-textMuted">Memverifikasi sesi...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-surface">

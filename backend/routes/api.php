@@ -46,6 +46,8 @@ Route::post('/orders/{id}/upload-proof', [OrderController::class, 'uploadProof']
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/change-password', [AuthController::class, 'changePassword']);
+    Route::put('/profile/password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/my-orders', [OrderController::class, 'customerOrders']);

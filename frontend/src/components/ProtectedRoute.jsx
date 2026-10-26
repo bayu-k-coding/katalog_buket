@@ -82,4 +82,34 @@ export const CustomerRoute = () => {
   return <Outlet />;
 };
 
-export default { AdminRoute, SuperAdminRoute, CustomerRoute };
+/**
+ * Route protection wrapper untuk rute tamu (guest-only / non-authenticated)
+ * Mencegah pengguna yang sudah login mengakses halaman login, register, atau pemulihan kata sandi
+ */
+export const GuestRoute = () => {
+  const { isAuthenticated, user, isInitializing } = useAuth();
+  const location = useLocation();
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-3 text-primary">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-textMuted">Memverifikasi sesi...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    if (user?.role === 'admin' || user?.role === 'superadmin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    const from = location.state?.from?.pathname || '/katalog';
+    return <Navigate to={from} replace />;
+  }
+
+  return <Outlet />;
+};
+
+export default { AdminRoute, SuperAdminRoute, CustomerRoute, GuestRoute };

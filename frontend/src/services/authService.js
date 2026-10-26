@@ -62,6 +62,16 @@ export const authService = {
   },
 
   /**
+   * Change authenticated user password
+   * @param {{ current_password: string, password: string, password_confirmation: string }} data
+   * @returns {Promise<{ message: string }>}
+   */
+  changePassword: async (data) => {
+    const response = await apiClient.put('/change-password', data);
+    return response.data;
+  },
+
+  /**
    * Revoke current token / Logout
    * @returns {Promise<Object>}
    */

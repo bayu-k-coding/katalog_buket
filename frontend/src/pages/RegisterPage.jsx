@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, ArrowRight, MapPin, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -15,8 +15,19 @@ const RegisterPage = () => {
   });
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { register, isLoading } = useAuth();
+  const { user, isAuthenticated, isInitializing, register, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect otomatis jika pengguna sudah dalam status login
+  useEffect(() => {
+    if (!isInitializing && isAuthenticated) {
+      if (user?.role === 'admin' || user?.role === 'superadmin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/katalog', { replace: true });
+      }
+    }
+  }, [isInitializing, isAuthenticated, user, navigate]);
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -48,6 +59,18 @@ const RegisterPage = () => {
       setErrorMessage(res.error || 'Pendaftaran akun gagal. Silakan periksa kembali data Anda.');
     }
   };
+
+  // Jangan render form jika sesi sedang diverifikasi atau sudah login
+  if (isInitializing || isAuthenticated) {
+    return (
+      <div className="min-h-[85vh] flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-3 text-primary">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="text-xs font-semibold text-textMuted">Memverifikasi sesi...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-surface">

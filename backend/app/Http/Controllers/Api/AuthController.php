@@ -159,6 +159,39 @@ class AuthController extends Controller
         ]);
     }
 
+    public function changePassword(Request $request)
+    {
+        $authUser = $request->user();
+
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:6|confirmed|different:current_password',
+        ], [
+            'current_password.required' => 'Kata sandi saat ini wajib diisi.',
+            'password.required' => 'Kata sandi baru wajib diisi.',
+            'password.min' => 'Kata sandi baru minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
+            'password.different' => 'Kata sandi baru harus berbeda dari kata sandi saat ini.',
+        ]);
+
+        if (!Hash::check($request->current_password, $authUser->password_hash)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Kata sandi saat ini yang Anda masukkan salah.'],
+            ]);
+        }
+
+        $authUser->password_hash = Hash::make($request->password);
+        $authUser->save();
+
+        return response()->json([
+            'message' => 'Kata sandi akun Anda berhasil diperbarui.',
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
