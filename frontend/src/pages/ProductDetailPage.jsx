@@ -75,18 +75,35 @@ const ProductDetailPage = () => {
       {/* Main Detail Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 bg-white p-6 sm:p-10 rounded-3xl border border-borderMuted/40 shadow-soft">
 
-        {/* Left: Product Placeholder Box (Tanpa Gambar Foto) */}
+        {/* Left: Product Image Box */}
         <div className="lg:col-span-6 space-y-4">
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-[#EDE9E4] border border-borderMuted/40 flex flex-col items-center justify-center text-textMuted">
-            <div className="w-20 h-20 rounded-3xl bg-white/80 border border-borderMuted/40 flex items-center justify-center text-primary mb-3 shadow-sm">
-              <Sparkles className="w-10 h-10" />
+            {product.foto ? (
+              <img
+                src={product.foto}
+                alt={product.nama_produk}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              style={{ display: product.foto ? 'none' : 'flex' }}
+              className="w-full h-full flex-col items-center justify-center text-textMuted p-6 text-center"
+            >
+              <div className="w-20 h-20 rounded-3xl bg-white/80 border border-borderMuted/40 flex items-center justify-center text-primary mb-3 shadow-sm">
+                <Sparkles className="w-10 h-10" />
+              </div>
+              <span className="font-playfair font-bold text-base text-gray-800">
+                {product.nama_produk}
+              </span>
+              <span className="text-xs text-textMuted mt-1 tracking-wider uppercase font-medium">
+                Kategori: {product.nama_kategori}
+              </span>
             </div>
-            <span className="font-playfair font-bold text-base text-gray-800">
-              IMG {product.nama_produk}
-            </span>
-            <span className="text-xs text-textMuted mt-1 tracking-wider uppercase font-medium">
-              Kategori: {product.nama_kategori}
-            </span>
 
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">

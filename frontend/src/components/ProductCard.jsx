@@ -30,14 +30,29 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-borderMuted/40 hover:border-primary/50 shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col h-full">
-      {/* Product Placeholder Frame (Tanpa Gambar Foto) */}
+      {/* Product Image Frame */}
       <Link to={`/katalog/${product.id_produk}`} className="relative block aspect-[4/3] overflow-hidden bg-[#EFEEEB]">
-        <div className="w-full h-full flex flex-col items-center justify-center text-textMuted bg-[#EDE9E4] group-hover:bg-[#E5E0D9] transition-colors">
+        {product.foto ? (
+          <img
+            src={product.foto}
+            alt={product.nama_produk}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling;
+              if (fallback) fallback.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div
+          style={{ display: product.foto ? 'none' : 'flex' }}
+          className="w-full h-full flex-col items-center justify-center text-textMuted bg-[#EDE9E4] group-hover:bg-[#E5E0D9] transition-colors"
+        >
           <div className="w-12 h-12 rounded-2xl bg-white/80 border border-borderMuted/40 flex items-center justify-center text-primary mb-1.5 shadow-sm group-hover:scale-110 transition-transform">
             <Gift className="w-6 h-6" />
           </div>
           <span className="text-[11px] font-bold tracking-widest uppercase text-textMuted">
-            IMG {product.nama_kategori}
+            {product.nama_kategori}
           </span>
         </div>
 

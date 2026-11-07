@@ -42,8 +42,42 @@ export const categoryService = {
 };
 
 export const productService = {
-  getAll: () => Promise.resolve({ data: mockProducts }),
-  getById: (id) => Promise.resolve({ data: mockProducts.find(p => p.id_produk === Number(id)) })
+  getAll: async (params = {}) => {
+    try {
+      const res = await apiClient.get('/products', { params });
+      return res.data;
+    } catch (e) {
+      console.warn('API /products unavailable, using fallback data:', e);
+      return { data: mockProducts };
+    }
+  },
+  getById: async (id) => {
+    try {
+      const res = await apiClient.get(`/products/${id}`);
+      return res.data;
+    } catch (e) {
+      return { data: mockProducts.find(p => p.id_produk === Number(id)) };
+    }
+  },
+  create: async (data) => {
+    const res = await apiClient.post('/admin/products', data);
+    return res.data;
+  },
+  update: async (id, data) => {
+    if (data instanceof FormData) {
+      if (!data.has('_method')) {
+        data.append('_method', 'PUT');
+      }
+      const res = await apiClient.post(`/admin/products/${id}`, data);
+      return res.data;
+    }
+    const res = await apiClient.put(`/admin/products/${id}`, data);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await apiClient.delete(`/admin/products/${id}`);
+    return res.data;
+  }
 };
 
 export const orderService = {

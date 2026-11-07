@@ -69,7 +69,10 @@ Route::prefix('admin')->group(function () {
     Route::patch('/orders/{id}/payment', [OrderController::class, 'verifyPayment']);
 
     // Manajemen Produk
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/products', [ProductController::class, 'store']);
+    Route::post('/products/{id}', [ProductController::class, 'update']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
@@ -95,6 +98,7 @@ Route::get('/orders', [OrderController::class, 'index']);
 Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 Route::patch('/orders/{id}/payment', [OrderController::class, 'verifyPayment']);
 Route::post('/products', [ProductController::class, 'store']);
+Route::post('/products/{id}', [ProductController::class, 'update']);
 Route::put('/products/{id}', [ProductController::class, 'update']);
 Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 Route::post('/categories', [CategoryController::class, 'store']);

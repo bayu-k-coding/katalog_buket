@@ -29,12 +29,12 @@ const CatalogPage = () => {
 
   useEffect(() => {
     productService.getAll().then((res) => {
-      if (res?.data && res.data.length > 0) {
+      if (res?.data) {
         setProducts(res.data);
       }
     });
     categoryService.getAll().then((res) => {
-      if (res?.data && res.data.length > 0) {
+      if (res?.data) {
         setCategories(res.data);
       }
     });
