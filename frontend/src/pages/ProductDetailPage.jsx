@@ -46,17 +46,17 @@ const ProductDetailPage = () => {
     );
   }
 
-  const isOutOfStock = product.stok <= 0 || !product.status_tersedia;
+  const isUnavailable = !product.status_tersedia;
 
   const handleAddToCart = () => {
-    if (isOutOfStock) return;
+    if (isUnavailable) return;
     addToCart(product, quantity);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
-    if (isOutOfStock) return;
+    if (isUnavailable) return;
     addToCart(product, quantity);
     navigate('/checkout');
   };
@@ -105,10 +105,10 @@ const ProductDetailPage = () => {
               </span>
             </div>
 
-            {isOutOfStock && (
+            {isUnavailable && (
               <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
                 <span className="bg-red-600 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg">
-                  Stok Sedang Habis
+                  Sedang Tidak Tersedia
                 </span>
               </div>
             )}
@@ -159,13 +159,13 @@ const ProductDetailPage = () => {
                 </span>
               </div>
               <div>
-                {isOutOfStock ? (
+                {isUnavailable ? (
                   <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">
-                    Habis
+                    Tidak Tersedia
                   </span>
                 ) : (
                   <span className="px-3 py-1 bg-secondary-subtle text-secondary text-xs font-semibold rounded-full">
-                    Stok Tersedia ({product.stok} unit)
+                    Tersedia
                   </span>
                 )}
               </div>
@@ -205,7 +205,7 @@ const ProductDetailPage = () => {
                   type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="px-3 py-1.5 text-sm font-bold text-gray-600 hover:text-primary transition-colors"
-                  disabled={quantity <= 1 || isOutOfStock}
+                  disabled={quantity <= 1 || isUnavailable}
                 >
                   -
                 </button>
@@ -214,9 +214,9 @@ const ProductDetailPage = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(Math.min(product.stok, quantity + 1))}
+                  onClick={() => setQuantity(Math.min(50, quantity + 1))}
                   className="px-3 py-1.5 text-sm font-bold text-gray-600 hover:text-primary transition-colors"
-                  disabled={quantity >= product.stok || isOutOfStock}
+                  disabled={quantity >= 50 || isUnavailable}
                 >
                   +
                 </button>
@@ -231,9 +231,9 @@ const ProductDetailPage = () => {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
+                disabled={isUnavailable}
                 className={`flex items-center justify-center gap-2 py-3 px-6 rounded-2xl text-xs font-bold transition-all shadow-sm ${
-                  isOutOfStock
+                  isUnavailable
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : added
                     ? 'bg-secondary text-white'
@@ -256,14 +256,14 @@ const ProductDetailPage = () => {
               <button
                 type="button"
                 onClick={handleBuyNow}
-                disabled={isOutOfStock}
+                disabled={isUnavailable}
                 className={`py-3 px-6 rounded-2xl text-xs font-bold transition-all shadow-elevated ${
-                  isOutOfStock
+                  isUnavailable
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : 'bg-primary text-white hover:bg-primary-hover active:scale-95'
                 }`}
               >
-                Beli Sekarang
+                {isUnavailable ? 'Tidak Tersedia' : 'Beli Sekarang'}
               </button>
             </div>
 

@@ -141,14 +141,14 @@ const Footer = () => {
         </div>
 
         {/* Bottom divider */}
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-4">
+        {/* <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-4">
           <p>© {new Date().getFullYear()} Intan Buket. All rights reserved. Proyek TI Kelompok 2 - PNM.</p>
           <div className="flex items-center gap-2">
             <span>Dibuat dengan</span>
             <Heart className="w-3.5 h-3.5 text-primary fill-primary" />
             <span>menggunakan React & Laravel REST API</span>
           </div>
-        </div>
+        </div> */}
 
       </div>
     </footer>

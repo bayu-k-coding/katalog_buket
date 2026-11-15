@@ -19,14 +19,14 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.stok <= 0 || !product.status_tersedia) return;
+    if (!product.status_tersedia) return;
 
     addToCart(product, 1);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const isOutOfStock = product.stok <= 0 || !product.status_tersedia;
+  const isUnavailable = !product.status_tersedia;
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-borderMuted/40 hover:border-primary/50 shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col h-full">
@@ -61,14 +61,10 @@ const ProductCard = ({ product }) => {
           {product.nama_kategori}
         </span>
 
-        {/* Stock Status Badge */}
-        {isOutOfStock ? (
+        {/* Availability Status Badge */}
+        {isUnavailable ? (
           <span className="absolute top-3 right-3 bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-            Habis
-          </span>
-        ) : product.stok <= 5 ? (
-          <span className="absolute top-3 right-3 bg-amber-500 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-sm">
-            Sisa {product.stok}
+            Tidak Tersedia
           </span>
         ) : (
           <span className="absolute top-3 right-3 bg-secondary/90 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded-full shadow-sm">
@@ -105,15 +101,15 @@ const ProductCard = ({ product }) => {
 
           <button
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
+            disabled={isUnavailable}
             className={`flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm ${
-              isOutOfStock
+              isUnavailable
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : added
                 ? 'bg-secondary text-white'
                 : 'bg-primary text-white hover:bg-primary-hover active:scale-95'
             }`}
-            title={isOutOfStock ? 'Stok habis' : 'Tambah ke Keranjang'}
+            title={isUnavailable ? 'Produk tidak tersedia' : 'Tambah ke Keranjang'}
           >
             {added ? (
               <>

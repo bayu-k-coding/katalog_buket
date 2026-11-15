@@ -29,7 +29,7 @@ class ProductController extends Controller
 
         // Storefront availability filter
         if ($request->boolean('available_only', false)) {
-            $query->where('status_tersedia', true)->where('stok', '>', 0);
+            $query->where('status_tersedia', true);
         }
 
         // Sorting
@@ -50,7 +50,6 @@ class ProductController extends Controller
                 'nama_produk' => $p->nama_produk,
                 'deskripsi' => $p->deskripsi,
                 'harga' => (float) $p->harga,
-                'stok' => (int) $p->stok,
                 'foto' => $p->foto,
                 'status_tersedia' => (bool) $p->status_tersedia,
                 'rating' => 4.9,
@@ -73,7 +72,6 @@ class ProductController extends Controller
                 'nama_produk' => $p->nama_produk,
                 'deskripsi' => $p->deskripsi,
                 'harga' => (float) $p->harga,
-                'stok' => (int) $p->stok,
                 'foto' => $p->foto,
                 'status_tersedia' => (bool) $p->status_tersedia,
                 'rating' => 4.9,
@@ -89,7 +87,6 @@ class ProductController extends Controller
             'nama_produk' => 'required|string|max:150',
             'deskripsi' => 'nullable|string',
             'harga' => 'required|numeric|min:0',
-            'stok' => 'required|integer|min:0',
             'status_tersedia' => 'nullable',
         ], [
             'id_kategori.required' => 'Kategori buket wajib dipilih.',
@@ -99,9 +96,6 @@ class ProductController extends Controller
             'harga.required' => 'Harga produk buket wajib diisi.',
             'harga.numeric' => 'Harga produk harus berupa angka nominal yang valid.',
             'harga.min' => 'Harga produk tidak boleh bernilai kurang dari 0.',
-            'stok.required' => 'Jumlah persediaan stok wajib diisi.',
-            'stok.integer' => 'Jumlah stok harus berupa bilangan bulat.',
-            'stok.min' => 'Jumlah stok tidak boleh bernilai negatif.',
         ]);
 
         // Proses unggah file foto produk
@@ -156,7 +150,6 @@ class ProductController extends Controller
                 'nama_produk' => $product->nama_produk,
                 'deskripsi' => $product->deskripsi,
                 'harga' => (float) $product->harga,
-                'stok' => (int) $product->stok,
                 'foto' => $product->foto,
                 'status_tersedia' => (bool) $product->status_tersedia,
                 'rating' => 5.0,
@@ -174,7 +167,6 @@ class ProductController extends Controller
             'nama_produk' => 'required|string|max:150',
             'deskripsi' => 'nullable|string',
             'harga' => 'required|numeric|min:0',
-            'stok' => 'required|integer|min:0',
             'status_tersedia' => 'nullable',
         ], [
             'id_kategori.required' => 'Kategori buket wajib dipilih.',
@@ -184,9 +176,6 @@ class ProductController extends Controller
             'harga.required' => 'Harga produk buket wajib diisi.',
             'harga.numeric' => 'Harga produk harus berupa angka nominal yang valid.',
             'harga.min' => 'Harga produk tidak boleh bernilai kurang dari 0.',
-            'stok.required' => 'Jumlah persediaan stok wajib diisi.',
-            'stok.integer' => 'Jumlah stok harus berupa bilangan bulat.',
-            'stok.min' => 'Jumlah stok tidak boleh bernilai negatif.',
         ]);
 
         // Proses unggah file foto baru atau hapus foto lama
@@ -254,7 +243,6 @@ class ProductController extends Controller
                 'nama_produk' => $product->nama_produk,
                 'deskripsi' => $product->deskripsi,
                 'harga' => (float) $product->harga,
-                'stok' => (int) $product->stok,
                 'foto' => $product->foto,
                 'status_tersedia' => (bool) $product->status_tersedia,
                 'rating' => 4.9,

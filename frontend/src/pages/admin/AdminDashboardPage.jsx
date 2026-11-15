@@ -20,7 +20,7 @@ const AdminDashboardPage = () => {
   const accessDenied = searchParams.get('denied') === 'superadmin_only';
 
   const pendingOrders = mockOrders.filter(o => o.status_pesanan === 'baru' || o.status_pembayaran === 'menunggu_verifikasi');
-  const lowStockProducts = mockProducts.filter(p => p.stok <= 5);
+  const unavailableProducts = mockProducts.filter(p => !p.status_tersedia);
   const totalRevenue = mockOrders.reduce((sum, o) => sum + (o.status_pembayaran === 'lunas' ? o.total_harga : 0), 0);
 
   return (
@@ -43,7 +43,7 @@ const AdminDashboardPage = () => {
             Dashboard Backoffice
           </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Ringkasan performa toko, transaksi pesanan buket, dan inventaris stok
+            Ringkasan performa toko, transaksi pesanan buket, dan ketersediaan katalog produk
           </p>
         </div>
 
@@ -94,13 +94,13 @@ const AdminDashboardPage = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-borderMuted/30 shadow-soft">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">Peringatan Stok</span>
-            <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+            <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">Produk Nonaktif</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="font-sans font-bold text-2xl text-red-600">{lowStockProducts.length} Produk</div>
-          <span className="text-[11px] text-red-600 font-medium">Stok menipis / habis</span>
+          <div className="font-sans font-bold text-2xl text-amber-700">{unavailableProducts.length} Produk</div>
+          <span className="text-[11px] text-amber-700 font-medium">Sedang tidak tersedia di etalase</span>
         </div>
       </div>
 
@@ -148,35 +148,41 @@ const AdminDashboardPage = () => {
           </div>
         </div>
 
-        {/* Right Column: Low stock alerts */}
+        {/* Right Column: Unavailable products */}
         <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-borderMuted/30 shadow-soft space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <h3 className="font-playfair font-bold text-lg text-gray-900">
-              Perlu Restok
+              Produk Tidak Tersedia
             </h3>
-            <span className="text-xs text-red-600 font-semibold">{lowStockProducts.length} item</span>
+            <span className="text-xs text-amber-700 font-semibold">{unavailableProducts.length} item</span>
           </div>
 
           <div className="space-y-3">
-            {lowStockProducts.map((p) => (
-              <div key={p.id_produk} className="flex items-center gap-3 p-2 rounded-xl bg-gray-50">
-                <div className="w-10 h-10 rounded-lg bg-[#EDE9E4] border border-borderMuted/40 shrink-0 flex items-center justify-center text-[9px] font-bold text-textMuted uppercase">
-                  IMG
+            {unavailableProducts.length === 0 ? (
+              <p className="text-xs text-textMuted text-center py-6">
+                Semua produk saat ini berstatus tersedia di etalase.
+              </p>
+            ) : (
+              unavailableProducts.map((p) => (
+                <div key={p.id_produk} className="flex items-center gap-3 p-2 rounded-xl bg-gray-50">
+                  <div className="w-10 h-10 rounded-lg bg-[#EDE9E4] border border-borderMuted/40 shrink-0 flex items-center justify-center text-[9px] font-bold text-textMuted uppercase">
+                    IMG
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{p.nama_produk}</p>
+                    <p className="text-[11px] text-rose-600 font-bold">
+                      Tidak Tersedia
+                    </p>
+                  </div>
+                  <Link
+                    to="/admin/produk"
+                    className="text-xs text-primary font-semibold hover:underline px-2"
+                  >
+                    Edit
+                  </Link>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-900 truncate">{p.nama_produk}</p>
-                  <p className="text-[11px] text-red-600 font-bold">
-                    {p.stok <= 0 ? 'Stok Habis (0)' : `Sisa ${p.stok} unit`}
-                  </p>
-                </div>
-                <Link
-                  to="/admin/produk"
-                  className="text-xs text-primary font-semibold hover:underline px-2"
-                >
-                  Edit
-                </Link>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

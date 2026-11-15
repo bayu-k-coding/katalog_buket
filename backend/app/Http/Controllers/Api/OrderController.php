@@ -76,8 +76,8 @@ class OrderController extends Controller
             foreach ($validated['items'] as $itemData) {
                 $product = Product::findOrFail($itemData['id_produk']);
 
-                if ($product->stok < $itemData['jumlah']) {
-                    throw new \Exception("Stok {$product->nama_produk} tidak mencukupi (tersisa {$product->stok}).");
+                if (!$product->status_tersedia) {
+                    throw new \Exception("Produk {$product->nama_produk} saat ini sedang tidak tersedia untuk dipesan.");
                 }
 
                 $subtotal = $product->harga * $itemData['jumlah'];
@@ -153,10 +153,6 @@ class OrderController extends Controller
         if ($validated['status_pembayaran'] === 'lunas') {
             $updateData['dibayar_pada'] = now();
             if ($order->status_pembayaran !== 'lunas') {
-                foreach ($order->items as $item) {
-                    Product::where('id_produk', $item->id_produk)
-                        ->decrement('stok', $item->jumlah);
-                }
                 $updateData['status_pesanan'] = 'diproses';
             }
         }

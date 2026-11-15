@@ -38,8 +38,8 @@ const AdminProductsPage = () => {
   // Filter & Search states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'available' | 'hidden' | 'out_of_stock'
-  const [sortBy, setSortBy] = useState('latest'); // 'latest' | 'price_asc' | 'price_desc' | 'stock_asc' | 'name_asc'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'available' | 'hidden'
+  const [sortBy, setSortBy] = useState('latest'); // 'latest' | 'price_asc' | 'price_desc' | 'name_asc'
 
   // Modal form states (Add / Edit)
   const [modalOpen, setModalOpen] = useState(false);
@@ -59,7 +59,6 @@ const AdminProductsPage = () => {
     nama_produk: '',
     id_kategori: '',
     harga: '',
-    stok: '',
     deskripsi: '',
     status_tersedia: true
   });
@@ -118,7 +117,6 @@ const AdminProductsPage = () => {
       nama_produk: '',
       id_kategori: categories.length > 0 ? categories[0].id_kategori : '',
       harga: '',
-      stok: '',
       deskripsi: '',
       status_tersedia: true
     });
@@ -139,7 +137,6 @@ const AdminProductsPage = () => {
       nama_produk: product.nama_produk || '',
       id_kategori: product.id_kategori || (categories[0]?.id_kategori ?? ''),
       harga: product.harga ?? '',
-      stok: product.stok ?? '',
       deskripsi: product.deskripsi || '',
       status_tersedia: Boolean(product.status_tersedia)
     });
@@ -247,9 +244,6 @@ const AdminProductsPage = () => {
     if (formData.harga === '' || Number(formData.harga) < 0) {
       errors.harga = ['Harga buket harus berupa angka lebih besar atau sama dengan 0.'];
     }
-    if (formData.stok === '' || Number(formData.stok) < 0) {
-      errors.stok = ['Jumlah stok harus berupa bilangan bulat tidak negatif.'];
-    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -262,7 +256,6 @@ const AdminProductsPage = () => {
     submitData.append('nama_produk', formData.nama_produk.trim());
     submitData.append('id_kategori', formData.id_kategori);
     submitData.append('harga', formData.harga);
-    submitData.append('stok', formData.stok);
     submitData.append('status_tersedia', formData.status_tersedia ? '1' : '0');
     if (formData.deskripsi?.trim()) {
       submitData.append('deskripsi', formData.deskripsi.trim());
@@ -331,7 +324,6 @@ const AdminProductsPage = () => {
         id_kategori: product.id_kategori,
         nama_produk: product.nama_produk,
         harga: product.harga,
-        stok: product.stok,
         status_tersedia: nextStatus
       });
 
@@ -389,11 +381,9 @@ const AdminProductsPage = () => {
         // Status filter
         let matchStatus = true;
         if (statusFilter === 'available') {
-          matchStatus = p.status_tersedia && p.stok > 0;
+          matchStatus = p.status_tersedia;
         } else if (statusFilter === 'hidden') {
           matchStatus = !p.status_tersedia;
-        } else if (statusFilter === 'out_of_stock') {
-          matchStatus = p.stok <= 0;
         }
 
         return matchSearch && matchCat && matchStatus;
@@ -401,7 +391,6 @@ const AdminProductsPage = () => {
       .sort((a, b) => {
         if (sortBy === 'price_asc') return a.harga - b.harga;
         if (sortBy === 'price_desc') return b.harga - a.harga;
-        if (sortBy === 'stock_asc') return a.stok - b.stok;
         if (sortBy === 'name_asc') return a.nama_produk.localeCompare(b.nama_produk);
         return b.id_produk - a.id_produk; // Default latest
       });
@@ -410,10 +399,10 @@ const AdminProductsPage = () => {
   // Statistics calculation
   const stats = useMemo(() => {
     const total = products.length;
-    const available = products.filter((p) => p.status_tersedia && p.stok > 0).length;
-    const criticalStock = products.filter((p) => p.stok <= 5 || !p.status_tersedia).length;
+    const available = products.filter((p) => p.status_tersedia).length;
+    const hidden = products.filter((p) => !p.status_tersedia).length;
     const totalCategories = categories.length;
-    return { total, available, criticalStock, totalCategories };
+    return { total, available, hidden, totalCategories };
   }, [products, categories]);
 
   return (
@@ -425,7 +414,7 @@ const AdminProductsPage = () => {
             Katalog Produk Buket
           </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Kelola data foto buket, kategori, harga satuan, jumlah stok persediaan, dan status tampil katalog
+            Kelola data foto buket, kategori, harga satuan, dan status ketersediaan tampil di katalog
           </p>
         </div>
 
@@ -499,20 +488,20 @@ const AdminProductsPage = () => {
           </div>
           <div className="mt-3">
             <span className="font-playfair text-2xl font-bold text-emerald-700">{stats.available}</span>
-            <span className="text-[11px] text-textMuted ml-1.5">siap dipesan</span>
+            <span className="text-[11px] text-textMuted ml-1.5">tersedia dipesan</span>
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-borderMuted/30 shadow-soft">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-textMuted">Perlu Perhatian</span>
+            <span className="text-xs font-semibold text-textMuted">Produk Nonaktif</span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="font-playfair text-2xl font-bold text-amber-700">{stats.criticalStock}</span>
-            <span className="text-[11px] text-textMuted ml-1.5">stok habis/kritis</span>
+            <span className="font-playfair text-2xl font-bold text-amber-700">{stats.hidden}</span>
+            <span className="text-[11px] text-textMuted ml-1.5">tidak tersedia</span>
           </div>
         </div>
 
@@ -576,8 +565,7 @@ const AdminProductsPage = () => {
           >
             <option value="all">Semua Status</option>
             <option value="available">Tersedia & Tampil</option>
-            <option value="hidden">Sembunyi / Nonaktif</option>
-            <option value="out_of_stock">Stok Habis (0)</option>
+            <option value="hidden">Sembunyi / Tidak Tersedia</option>
           </select>
 
           {/* Sort Selector */}
@@ -589,7 +577,6 @@ const AdminProductsPage = () => {
             <option value="latest">Terbaru</option>
             <option value="price_asc">Harga Terendah</option>
             <option value="price_desc">Harga Tertinggi</option>
-            <option value="stock_asc">Stok Tersedikit</option>
             <option value="name_asc">Nama A-Z</option>
           </select>
         </div>
@@ -637,16 +624,12 @@ const AdminProductsPage = () => {
                   <th className="px-5 py-4 min-w-[200px]">Nama Buket</th>
                   <th className="px-5 py-4">Kategori</th>
                   <th className="px-5 py-4">Harga Satuan</th>
-                  <th className="px-5 py-4">Stok</th>
-                  <th className="px-5 py-4">Status Tampil</th>
+                  <th className="px-5 py-4">Status Ketersediaan</th>
                   <th className="px-5 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredProducts.map((product) => {
-                  const isOutOfStock = product.stok <= 0;
-                  const isLowStock = product.stok > 0 && product.stok <= 5;
-
                   return (
                     <tr key={product.id_produk} className="hover:bg-[#FAF8F5]/80 transition-colors">
                       {/* Foto Thumbnail (Dapat diklik untuk melihat detail) */}
@@ -704,22 +687,7 @@ const AdminProductsPage = () => {
                         {formatRupiah(product.harga)}
                       </td>
 
-                      {/* Stok Persediaan */}
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                            isOutOfStock
-                              ? 'bg-red-100 text-red-700'
-                              : isLowStock
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-emerald-100 text-emerald-800'
-                          }`}
-                        >
-                          {isOutOfStock ? 'Habis (0)' : `${product.stok} unit`}
-                        </span>
-                      </td>
-
-                      {/* Status Tampil & Toggle */}
+                      {/* Status Ketersediaan & Toggle */}
                       <td className="px-5 py-3.5">
                         <button
                           type="button"
@@ -727,12 +695,12 @@ const AdminProductsPage = () => {
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                             product.status_tersedia
                               ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300'
+                              : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
                           }`}
-                          title="Klik untuk mengubah status tampil/sembunyi katalog"
+                          title="Klik untuk mengubah status ketersediaan di katalog"
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${product.status_tersedia ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                          <span>{product.status_tersedia ? 'Tampil' : 'Sembunyi'}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${product.status_tersedia ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                          <span>{product.status_tersedia ? 'Tersedia' : 'Tidak Tersedia'}</span>
                         </button>
                       </td>
 
@@ -801,7 +769,7 @@ const AdminProductsPage = () => {
                 </h3>
                 <p className="text-xs text-textMuted mt-0.5">
                   {editingProduct
-                    ? 'Perbarui rincian harga, stok, foto, dan kategori buket'
+                    ? 'Perbarui rincian harga, foto, kategori, dan ketersediaan buket'
                     : 'Lengkapi formulir untuk menambahkan varian buket baru ke katalog'}
                 </p>
               </div>
@@ -909,52 +877,25 @@ const AdminProductsPage = () => {
                 </div>
               </div>
 
-              {/* Stok & Status Tampil */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Stok Persediaan */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Jumlah Stok Persediaan *
-                  </label>
+              {/* Status Ketersediaan */}
+              <div>
+                <label className="flex items-center gap-3 p-3.5 rounded-xl border border-borderMuted/60 bg-[#FBF9F6] cursor-pointer hover:border-primary/50 transition-colors">
                   <input
-                    type="number"
-                    name="stok"
-                    required
-                    min={0}
-                    value={formData.stok}
+                    type="checkbox"
+                    name="status_tersedia"
+                    checked={formData.status_tersedia}
                     onChange={handleInputChange}
-                    placeholder="Contoh: 10"
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none transition-colors ${
-                      formErrors.stok
-                        ? 'border-rose-300 focus:border-rose-500 bg-rose-50/30'
-                        : 'border-borderMuted/60 focus:border-primary'
-                    }`}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
                   />
-                  {formErrors.stok && (
-                    <p className="text-[11px] text-rose-600 mt-1">{formErrors.stok[0]}</p>
-                  )}
-                </div>
-
-                {/* Status Tampil Checkbox */}
-                <div className="flex flex-col justify-end">
-                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-borderMuted/60 bg-[#FBF9F6] cursor-pointer hover:border-primary/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      name="status_tersedia"
-                      checked={formData.status_tersedia}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer"
-                    />
-                    <div>
-                      <span className="text-xs font-semibold text-gray-800 block">
-                        Tampilkan di Katalog Publik
-                      </span>
-                      <span className="text-[10px] text-textMuted block">
-                        Aktifkan agar pelanggan dapat melihat & memesan
-                      </span>
-                    </div>
-                  </label>
-                </div>
+                  <div>
+                    <span className="text-xs font-semibold text-gray-800 block">
+                      Status Ketersediaan: {formData.status_tersedia ? 'Tersedia untuk Dipesan' : 'Tidak Tersedia / Habis'}
+                    </span>
+                    <span className="text-[11px] text-textMuted block">
+                      Aktifkan agar pelanggan dapat melihat dan memesan buket ini di katalog
+                    </span>
+                  </div>
+                </label>
               </div>
 
               {/* Unggah File Foto Produk */}
@@ -1267,12 +1208,12 @@ const AdminProductsPage = () => {
                 </div>
               </div>
 
-              {/* Rangkuman Stok & Kategori */}
+              {/* Rangkuman Status Ketersediaan & Kategori */}
               <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#FBF9F6] border border-borderMuted/40 text-xs">
                 <div>
-                  <span className="text-textMuted block text-[11px]">Jumlah Stok Persediaan</span>
-                  <span className={`font-bold text-sm ${detailProduct.stok <= 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                    {detailProduct.stok} unit {detailProduct.stok <= 0 && '(Stok Habis)'}
+                  <span className="text-textMuted block text-[11px]">Status Ketersediaan</span>
+                  <span className={`font-bold text-sm ${detailProduct.status_tersedia ? 'text-emerald-700' : 'text-rose-600'}`}>
+                    {detailProduct.status_tersedia ? 'Tersedia untuk Dipesan' : 'Tidak Tersedia'}
                   </span>
                 </div>
                 <div>

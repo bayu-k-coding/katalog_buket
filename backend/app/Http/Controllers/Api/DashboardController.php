@@ -14,7 +14,7 @@ class DashboardController extends Controller
         $totalRevenue = Order::where('status_pembayaran', 'lunas')->sum('total_harga');
         $pendingOrders = Order::where('status_pesanan', 'baru')->count();
         $totalProducts = Product::count();
-        $lowStockProducts = Product::where('stok', '<=', 5)->count();
+        $unavailableProducts = Product::where('status_tersedia', false)->count();
         $totalCustomers = Pelanggan::count();
 
         $recentOrders = Order::with(['pelanggan', 'items.product'])
@@ -26,7 +26,8 @@ class DashboardController extends Controller
             'total_revenue' => (float) $totalRevenue,
             'pending_orders' => $pendingOrders,
             'total_products' => $totalProducts,
-            'low_stock_products' => $lowStockProducts,
+            'unavailable_products' => $unavailableProducts,
+            'low_stock_products' => $unavailableProducts,
             'total_customers' => $totalCustomers,
             'recent_orders' => $recentOrders,
         ]);

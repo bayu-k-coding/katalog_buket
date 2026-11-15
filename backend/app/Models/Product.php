@@ -17,7 +17,6 @@ class Product extends Model
         'nama_produk',
         'deskripsi',
         'harga',
-        'stok',
         'foto',
         'status_tersedia'
     ];
@@ -26,7 +25,6 @@ class Product extends Model
     {
         return [
             'harga' => 'integer',
-            'stok' => 'integer',
             'status_tersedia' => 'boolean'
         ];
     }
