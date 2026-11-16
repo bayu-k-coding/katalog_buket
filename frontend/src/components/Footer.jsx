@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Instagram, Heart } from 'lucide-react';
-import { shopProfileService } from '../services/api';
-import { mockShopProfile } from '../services/mockData';
+import { useShopProfile } from '../context/ShopProfileContext';
 
 const Footer = () => {
-  const [profile, setProfile] = useState(mockShopProfile);
-
-  useEffect(() => {
-    shopProfileService.get().then((res) => {
-      if (res?.data) {
-        setProfile(res.data);
-      }
-    });
-  }, []);
+  const { shopProfile: profile } = useShopProfile();
 
   const rawPhone = profile.no_kontak || profile.whatsapp || '081234567890';
   const cleanPhone = rawPhone.replace(/\D/g, '');

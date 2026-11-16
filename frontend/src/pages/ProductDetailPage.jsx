@@ -12,18 +12,19 @@ import {
   ArrowLeft,
   MessageCircle
 } from 'lucide-react';
-import { productService, shopProfileService } from '../services/api';
-import { mockProducts, mockShopProfile } from '../services/mockData';
+import { productService } from '../services/api';
+import { mockProducts } from '../services/mockData';
 import { useCart } from '../context/CartContext';
+import { useShopProfile } from '../context/ShopProfileContext';
 import { formatRupiah } from '../components/ProductCard';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { shopProfile } = useShopProfile();
 
   const [product, setProduct] = useState(null);
-  const [shopProfile, setShopProfile] = useState(mockShopProfile);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [cardMessage, setCardMessage] = useState('');
@@ -35,12 +36,6 @@ const ProductDetailPage = () => {
       } else {
         const found = mockProducts.find(p => p.id_produk === Number(id));
         setProduct(found || mockProducts[0]);
-      }
-    });
-
-    shopProfileService.get().then((res) => {
-      if (res?.data) {
-        setShopProfile(res.data);
       }
     });
   }, [id]);

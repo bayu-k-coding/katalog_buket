@@ -15,8 +15,10 @@ import {
   Building2
 } from 'lucide-react';
 import { shopProfileService } from '../../services/api';
+import { useShopProfile } from '../../context/ShopProfileContext';
 
 const AdminShopProfilePage = () => {
+  const { updateShopProfile } = useShopProfile();
   // Data state
   const [formData, setFormData] = useState({
     nama_toko: '',
@@ -205,6 +207,7 @@ const AdminShopProfilePage = () => {
       const res = await shopProfileService.update(submitData);
 
       if (res?.data) {
+        updateShopProfile(res.data);
         setFormData((prev) => ({
           ...prev,
           nama_toko: res.data.nama_toko || prev.nama_toko,

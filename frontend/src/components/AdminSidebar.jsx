@@ -12,9 +12,11 @@ import {
   User
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useShopProfile } from '../context/ShopProfileContext';
 
 const AdminSidebar = () => {
   const { user, logout, isSuperAdmin } = useAuth();
+  const { shopProfile } = useShopProfile();
   const navigate = useNavigate();
 
   const navItems = [
@@ -39,12 +41,33 @@ const AdminSidebar = () => {
       {/* Brand Header */}
       <div className="p-6 border-b border-borderMuted/30">
         <Link to="/admin/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-playfair font-bold text-xl shadow-sm">
-            IB
-          </div>
+          {shopProfile?.logo ? (
+            <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center p-0.5 border border-borderMuted/40 shadow-sm shrink-0">
+              <img
+                src={shopProfile.logo}
+                alt={shopProfile.nama_toko || 'Logo'}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  if (e.currentTarget.nextElementSibling) {
+                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                  }
+                }}
+              />
+              <div style={{ display: 'none' }} className="w-full h-full rounded-xl bg-primary text-white items-center justify-center font-playfair font-bold text-xl">
+                {shopProfile?.nama_toko ? shopProfile.nama_toko.charAt(0).toUpperCase() : 'IB'}
+              </div>
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-playfair font-bold text-xl shadow-sm shrink-0">
+              {shopProfile?.nama_toko
+                ? shopProfile.nama_toko.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+                : 'IB'}
+            </div>
+          )}
           <div>
             <h2 className="font-playfair font-bold text-lg text-gray-900 leading-tight">
-              Intan Buket
+              {shopProfile?.nama_toko || 'Intan Buket'}
             </h2>
             <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary">
               <ShieldCheck className="w-3 h-3" />

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Loader2, MessageCircle } from 'lucide-react';
 import { authService } from '../services/authService';
+import { useShopProfile } from '../context/ShopProfileContext';
 
 const ForgotPasswordPage = () => {
+  const { shopProfile } = useShopProfile();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -32,9 +34,30 @@ const ForgotPasswordPage = () => {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-block group">
-            <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-playfair font-bold text-2xl mx-auto border border-primary/20 group-hover:scale-105 transition-transform">
-              IB
-            </div>
+            {shopProfile?.logo ? (
+              <div className="w-14 h-14 rounded-2xl bg-white overflow-hidden flex items-center justify-center p-1 border border-primary/20 shadow-sm mx-auto group-hover:scale-105 transition-transform">
+                <img
+                  src={shopProfile.logo}
+                  alt={shopProfile.nama_toko || 'Logo'}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextElementSibling) {
+                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+                <div style={{ display: 'none' }} className="w-full h-full rounded-2xl bg-primary/10 items-center justify-center text-primary font-playfair font-bold text-2xl">
+                  {shopProfile.nama_toko ? shopProfile.nama_toko.charAt(0).toUpperCase() : 'IB'}
+                </div>
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-playfair font-bold text-2xl mx-auto border border-primary/20 group-hover:scale-105 transition-transform">
+                {shopProfile?.nama_toko
+                  ? shopProfile.nama_toko.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+                  : 'IB'}
+              </div>
+            )}
           </Link>
           <h2 className="font-playfair text-2xl sm:text-3xl font-bold text-gray-900">
             Pemulihan Kata Sandi

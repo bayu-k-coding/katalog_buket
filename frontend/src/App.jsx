@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { ShopProfileProvider } from './context/ShopProfileContext';
 import { AdminRoute, SuperAdminRoute, GuestRoute } from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -55,8 +56,9 @@ const AdminLayout = () => {
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
+      <ShopProfileProvider>
+        <CartProvider>
+          <BrowserRouter>
           <Routes>
             {/* Storefront Routes */}
             <Route element={<StorefrontLayout />}>
@@ -98,7 +100,8 @@ function App() {
           </Routes>
         </BrowserRouter>
       </CartProvider>
-    </AuthProvider>
+    </ShopProfileProvider>
+  </AuthProvider>
   );
 }
 

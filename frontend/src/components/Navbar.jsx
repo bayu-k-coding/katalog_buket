@@ -3,10 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, X, User, LogIn, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useShopProfile } from '../context/ShopProfileContext';
 
 const Navbar = () => {
   const { totalItems } = useCart();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { shopProfile } = useShopProfile();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -45,7 +47,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 bg-[#FBF9F6]/95 backdrop-blur-md border-b border-borderMuted/40 transition-all">
       {/* Top announcement bar */}
       <div className="bg-primary text-white text-xs py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2">
-        <span>Koleksi Buket Wisuda & Buket Uang Elegan — Intan Buket</span>
+        <span>Koleksi Buket Wisuda & Buket Uang Elegan — {shopProfile?.nama_toko || 'Intan Buket'}</span>
         <span className="hidden md:inline font-normal text-white/80">| Pengiriman Cepat Area Madiun & Sekitarnya</span>
       </div>
 
@@ -54,15 +56,38 @@ const Navbar = () => {
 
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-105 transition-transform">
-              <span className="font-playfair font-bold text-xl">IB</span>
-            </div>
+            {shopProfile?.logo ? (
+              <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center p-0.5 border border-borderMuted/40 shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                <img
+                  src={shopProfile.logo}
+                  alt={shopProfile.nama_toko || 'Logo'}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextElementSibling) {
+                      e.currentTarget.nextElementSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+                <div style={{ display: 'none' }} className="w-full h-full rounded-full bg-primary/10 items-center justify-center text-primary font-playfair font-bold text-lg">
+                  {shopProfile.nama_toko ? shopProfile.nama_toko.charAt(0).toUpperCase() : 'IB'}
+                </div>
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-105 transition-transform shrink-0">
+                <span className="font-playfair font-bold text-xl">
+                  {shopProfile?.nama_toko
+                    ? shopProfile.nama_toko.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+                    : 'IB'}
+                </span>
+              </div>
+            )}
             <div>
               <span className="font-playfair font-bold text-2xl tracking-tight text-[#1B1C1A] group-hover:text-primary transition-colors">
-                Intan Buket
+                {shopProfile?.nama_toko || 'Intan Buket'}
               </span>
               <span className="block text-[10px] tracking-widest uppercase text-textMuted font-medium">
-                Artisanal Florist
+                {shopProfile?.slogan || 'Artisanal Florist'}
               </span>
             </div>
           </Link>

@@ -12,13 +12,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { productService, categoryService, shopProfileService } from '../services/api';
-import { mockProducts, mockCategories, mockShopProfile } from '../services/mockData';
+import { productService, categoryService } from '../services/api';
+import { mockProducts, mockCategories } from '../services/mockData';
+import { useShopProfile } from '../context/ShopProfileContext';
 
 const HomePage = () => {
+  const { shopProfile } = useShopProfile();
   const [featuredProducts, setFeaturedProducts] = useState(mockProducts.slice(0, 4));
   const [categories, setCategories] = useState(mockCategories);
-  const [shopProfile, setShopProfile] = useState(mockShopProfile);
 
   useEffect(() => {
     // Load products
@@ -31,12 +32,6 @@ const HomePage = () => {
     categoryService.getAll().then((res) => {
       if (res?.data && res.data.length > 0) {
         setCategories(res.data);
-      }
-    });
-    // Load shop profile
-    shopProfileService.get().then((res) => {
-      if (res?.data) {
-        setShopProfile(res.data);
       }
     });
   }, []);
