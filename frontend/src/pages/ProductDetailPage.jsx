@@ -12,7 +12,7 @@ import {
   ArrowLeft,
   MessageCircle
 } from 'lucide-react';
-import { productService } from '../services/api';
+import { productService, shopProfileService } from '../services/api';
 import { mockProducts, mockShopProfile } from '../services/mockData';
 import { useCart } from '../context/CartContext';
 import { formatRupiah } from '../components/ProductCard';
@@ -23,6 +23,7 @@ const ProductDetailPage = () => {
   const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
+  const [shopProfile, setShopProfile] = useState(mockShopProfile);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [cardMessage, setCardMessage] = useState('');
@@ -34,6 +35,12 @@ const ProductDetailPage = () => {
       } else {
         const found = mockProducts.find(p => p.id_produk === Number(id));
         setProduct(found || mockProducts[0]);
+      }
+    });
+
+    shopProfileService.get().then((res) => {
+      if (res?.data) {
+        setShopProfile(res.data);
       }
     });
   }, [id]);
@@ -269,7 +276,7 @@ const ProductDetailPage = () => {
 
             {/* WhatsApp Consultation */}
             <a
-              href={`https://wa.me/${mockShopProfile.whatsapp || '681234567890'}?text=Halo%20Intan%20Buket,%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(product.nama_produk)}`}
+              href={`https://wa.me/${(shopProfile.no_kontak || shopProfile.whatsapp || '081234567890').replace(/\D/g, '')}?text=Halo%20Intan%20Buket,%20saya%20tertarik%20dengan%20produk%20${encodeURIComponent(product.nama_produk)}`}
               target="_blank"
               rel="noreferrer"
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 rounded-xl text-xs font-semibold transition-colors"

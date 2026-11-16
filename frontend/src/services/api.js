@@ -91,7 +91,26 @@ export const paymentMethodService = {
 };
 
 export const shopProfileService = {
-  get: () => Promise.resolve({ data: mockShopProfile })
+  get: async () => {
+    try {
+      const res = await apiClient.get('/shop-profile');
+      return res.data;
+    } catch (e) {
+      console.warn('API /shop-profile unavailable, using fallback data:', e);
+      return { data: mockShopProfile };
+    }
+  },
+  update: async (data) => {
+    if (data instanceof FormData) {
+      if (!data.has('_method')) {
+        data.append('_method', 'PUT');
+      }
+      const res = await apiClient.post('/admin/shop-profile', data);
+      return res.data;
+    }
+    const res = await apiClient.put('/admin/shop-profile', data);
+    return res.data;
+  }
 };
 
 export const userService = {

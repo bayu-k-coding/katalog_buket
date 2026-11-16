@@ -1,9 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Clock, Instagram, Heart } from 'lucide-react';
+import { shopProfileService } from '../services/api';
 import { mockShopProfile } from '../services/mockData';
 
 const Footer = () => {
+  const [profile, setProfile] = useState(mockShopProfile);
+
+  useEffect(() => {
+    shopProfileService.get().then((res) => {
+      if (res?.data) {
+        setProfile(res.data);
+      }
+    });
+  }, []);
+
+  const rawPhone = profile.no_kontak || profile.whatsapp || '081234567890';
+  const cleanPhone = rawPhone.replace(/\D/g, '');
+  const waNumber = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+
   return (
     <footer id="tentang" className="bg-[#1B1C1A] text-white pt-16 pb-8 border-t border-[#30312F]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,12 +27,22 @@ const Footer = () => {
           {/* Col 1: Brand Info */}
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary-light border border-primary/30">
-                <span className="font-playfair font-bold text-xl">IB</span>
-              </div>
+              {profile.logo ? (
+                <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center p-0.5 border border-white/20">
+                  <img
+                    src={profile.logo}
+                    alt={profile.nama_toko || 'Logo'}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary-light border border-primary/30">
+                  <span className="font-playfair font-bold text-xl">IB</span>
+                </div>
+              )}
               <div>
                 <h3 className="font-playfair font-bold text-2xl tracking-tight text-white">
-                  Intan Buket
+                  {profile.nama_toko || 'Intan Buket'}
                 </h3>
                 <span className="text-[10px] tracking-widest uppercase text-gray-400 font-medium">
                   Artisanal Florist
@@ -25,26 +50,24 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
-              {mockShopProfile.slogan}. Setiap rangkaian buket dibuat dengan ketelitian seni tinggi untuk mengabadikan momen berharga Anda.
+              {profile.deskripsi || 'Butik buket bunga, buket uang, dan kado kerajinan tangan berkualitas tinggi di Madiun. Setiap rangkaian buket dibuat dengan ketelitian seni tinggi.'}
             </p>
             <div className="flex items-center gap-3">
               <a
-                href={`https://instagram.com`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-primary flex items-center justify-center text-white transition-colors"
-                title="Instagram Intan Buket"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href={`https://wa.me/${mockShopProfile.whatsapp}`}
+                href={`https://wa.me/${waNumber}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-9 h-9 rounded-full bg-white/10 hover:bg-secondary flex items-center justify-center text-white transition-colors"
-                title="WhatsApp Intan Buket"
+                title="WhatsApp Toko"
               >
                 <Phone className="w-4 h-4" />
+              </a>
+              <a
+                href={`mailto:${profile.email_toko || 'info@intanbuket.com'}`}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-primary flex items-center justify-center text-white transition-colors"
+                title="Email Toko"
+              >
+                <Mail className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -121,34 +144,24 @@ const Footer = () => {
             <div className="space-y-3 text-sm text-gray-300">
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-primary-light shrink-0 mt-1" />
-                <span>{mockShopProfile.alamat}</span>
+                <span>{profile.alamat || 'Jl. Raya Pendidikan No. 45, Madiun'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-primary-light shrink-0" />
-                <span>{mockShopProfile.no_kontak}</span>
+                <span>{profile.no_kontak || '0812-3456-7890'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary-light shrink-0" />
-                <span>{mockShopProfile.email_toko}</span>
+                <span>{profile.email_toko || 'info@intanbuket.com'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="w-4 h-4 text-primary-light shrink-0" />
-                <span>{mockShopProfile.jam_buka}</span>
+                <span>{profile.jam_buka || '08.00 - 21.00 WIB'}</span>
               </div>
             </div>
           </div>
 
         </div>
-
-        {/* Bottom divider */}
-        {/* <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-4">
-          <p>© {new Date().getFullYear()} Intan Buket. All rights reserved. Proyek TI Kelompok 2 - PNM.</p>
-          <div className="flex items-center gap-2">
-            <span>Dibuat dengan</span>
-            <Heart className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span>menggunakan React & Laravel REST API</span>
-          </div>
-        </div> */}
 
       </div>
     </footer>

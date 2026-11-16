@@ -256,7 +256,7 @@ const HomePage = () => {
             </p>
             <div className="pt-2 flex flex-wrap gap-4">
               <a
-                href={`https://wa.me/${shopProfile.whatsapp || '681234567890'}?text=Halo%20Intan%20Buket,%20saya%20ingin%20konsultasi%20pesan%20buket%20custom`}
+                href={`https://wa.me/${(shopProfile.no_kontak || shopProfile.whatsapp || '081234567890').replace(/\D/g, '')}?text=Halo%20Intan%20Buket,%20saya%20ingin%20konsultasi%20pesan%20buket%20custom`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-bold text-sm rounded-xl hover:bg-gray-100 shadow-md transition-all active:scale-95"

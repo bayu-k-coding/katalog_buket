@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ShopProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ShopProfileController extends Controller
 {
@@ -14,12 +15,10 @@ class ShopProfileController extends Controller
             ['id_toko' => 1],
             [
                 'nama_toko' => 'Intan Buket',
-                'slogan' => 'Artisanal Botanical Elegance for Your Special Moments',
                 'deskripsi' => 'Intan Buket adalah butik buket bunga, buket uang, dan kado kerajinan tangan berkualitas tinggi di Madiun.',
-                'alamat' => 'Jl. Raya Pendidikan No. 45, Madiun, Jawa Timur',
-                'jam_buka' => '08.00 – 21.00 WIB',
+                'alamat' => 'Jl. Raya Pendidikan No. 45, Madiun',
+                'jam_buka' => '08.00 - 21.00 WIB',
                 'no_kontak' => '0812-3456-7890',
-                'whatsapp' => '681234567890',
                 'email_toko' => 'info@intanbuket.com',
             ]
         );
@@ -33,23 +32,69 @@ class ShopProfileController extends Controller
 
         $validated = $request->validate([
             'nama_toko' => 'required|string|max:100',
-            'slogan' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
-            'alamat' => 'nullable|string',
-            'jam_buka' => 'nullable|string|max:100',
-            'no_kontak' => 'nullable|string|max:20',
-            'whatsapp' => 'nullable|string|max:20',
+            'alamat' => 'nullable|string|max:60',
+            'jam_buka' => 'nullable|string|max:11',
+            'no_kontak' => 'required|string|max:16',
             'email_toko' => 'nullable|string|email|max:100',
-            'logo' => 'nullable|string|max:255',
+        ], [
+            'nama_toko.required' => 'Nama butik/toko wajib diisi.',
+            'no_kontak.required' => 'Nomor kontak/WhatsApp resmi wajib diisi.',
+            'no_kontak.max' => 'Nomor kontak maksimal 16 digit.',
+            'alamat.max' => 'Alamat toko maksimal 60 karakter.',
+            'jam_buka.max' => 'Format jam buka maksimal 11 karakter (contoh: 08.00-21.00).',
+            'email_toko.email' => 'Format alamat email toko tidak valid.',
         ]);
 
-        $validated['updated_by'] = $request->user()?->id_user ?? null;
+        // Upload Logo Toko
+        if ($request->hasFile('logo')) {
+            $request->validate([
+                'logo' => 'file|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            ], [
+                'logo.image' => 'File logo harus berupa gambar.',
+                'logo.mimes' => 'Format file logo harus berupa JPG, PNG, WEBP, atau SVG.',
+                'logo.max' => 'Ukuran file logo maksimal 2 MB.',
+            ]);
+
+            // Hapus file logo lama jika ada
+            if ($profile->logo && Str::contains($profile->logo, 'uploads/logo/')) {
+                $oldFilename = basename(parse_url($profile->logo, PHP_URL_PATH));
+                $oldFilePath = public_path('uploads/logo/' . $oldFilename);
+                if (file_exists($oldFilePath)) {
+                    @unlink($oldFilePath);
+                }
+            }
+
+            $file = $request->file('logo');
+            $extension = $file->getClientOriginalExtension() ?: 'png';
+            $filename = 'logo_' . time() . '_' . Str::random(8) . '.' . strtolower($extension);
+            $destinationPath = public_path('uploads/logo');
+
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+
+            $file->move($destinationPath, $filename);
+            $validated['logo'] = url('uploads/logo/' . $filename);
+        } elseif ($request->boolean('hapus_logo', false)) {
+            // Hapus logo jika ada permintaan
+            if ($profile->logo && Str::contains($profile->logo, 'uploads/logo/')) {
+                $oldFilename = basename(parse_url($profile->logo, PHP_URL_PATH));
+                $oldFilePath = public_path('uploads/logo/' . $oldFilename);
+                if (file_exists($oldFilePath)) {
+                    @unlink($oldFilePath);
+                }
+            }
+            $validated['logo'] = null;
+        }
+
+        $validated['updated_by'] = $request->user()?->id_user ?? 1;
 
         $profile->update($validated);
 
         return response()->json([
-            'message' => 'Profil toko berhasil diperbarui',
-            'data' => $profile
+            'message' => 'Profil toko berhasil diperbarui.',
+            'data' => $profile->fresh()
         ]);
     }
 }
