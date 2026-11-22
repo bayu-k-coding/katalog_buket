@@ -87,6 +87,34 @@ const ForgotPasswordPage = () => {
               </p>
             </div>
 
+            {/* Tombol Tautan Langsung Mode Development / Pengujian */}
+            {successInfo?.debug_reset_url && (
+              <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl text-left space-y-2.5 animate-fadeIn">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Mode Development / Tautan Reset Langsung</span>
+                </div>
+                {successInfo?.mail_error && (
+                  <div className="text-[11px] bg-rose-50 border border-rose-200 text-rose-800 p-2.5 rounded-xl space-y-1">
+                    <p className="font-bold">Info API Brevo:</p>
+                    <p className="font-mono text-[10px] break-all">{successInfo.mail_error}</p>
+                    <p className="text-[10px] text-rose-600 mt-1">
+                      *Izin (scope) API Key Brevo belum mencakup <em>Transactional Email</em>. Anda tetap bisa mereset sandi langsung melalui tombol di bawah.
+                    </p>
+                  </div>
+                )}
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Gunakan tombol di bawah ini untuk langsung menuju ke halaman pembuatan kata sandi baru:
+                </p>
+                <a
+                  href={successInfo.debug_reset_url}
+                  className="block w-full text-center py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+                >
+                  Buka Halaman Atur Ulang Sandi &rarr;
+                </a>
+              </div>
+            )}
+
             <div className="pt-2 space-y-3">
               <button
                 type="button"

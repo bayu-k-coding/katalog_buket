@@ -119,6 +119,10 @@ export const paymentGatewayService = {
   pay: async (orderId, channel = 'QRIS Instan') => {
     const res = await apiClient.post(`/payment-gateway/${orderId}/pay`, { channel });
     return res.data;
+  },
+  createMidtransToken: async (orderId) => {
+    const res = await apiClient.post(`/payment-gateway/${orderId}/midtrans-token`);
+    return res.data;
   }
 };
 

@@ -40,9 +40,12 @@ Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/orders/{id}/upload-proof', [OrderController::class, 'uploadProof']);
 
-// Payment Gateway Publik
+// Payment Gateway & Midtrans Snap
 Route::get('/payment-gateway/{orderId}', [PaymentGatewayController::class, 'show']);
 Route::post('/payment-gateway/{orderId}/pay', [PaymentGatewayController::class, 'pay']);
+Route::post('/payment-gateway/{orderId}/midtrans-token', [PaymentGatewayController::class, 'createMidtransToken']);
+Route::post('/payment-gateway/midtrans-webhook', [PaymentGatewayController::class, 'midtransWebhook']);
+Route::post('/midtrans-webhook', [PaymentGatewayController::class, 'midtransWebhook']);
 
 
 // ==========================================

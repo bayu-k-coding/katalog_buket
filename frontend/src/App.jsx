@@ -72,13 +72,13 @@ function App() {
               <Route path="/pembayaran/:orderId" element={<PaymentGatewayPage />} />
               <Route path="/pesanan-saya" element={<OrdersPage />} />
               <Route path="/profil" element={<ProfilePage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Guest Only Routes (Tidak dapat diakses jika sudah login) */}
               <Route element={<GuestRoute />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
               </Route>
             </Route>
 

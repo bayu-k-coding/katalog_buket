@@ -88,10 +88,10 @@ class OrderController extends Controller
                 $paymentMethod = PaymentMethod::find($validated['id_metode']);
             }
 
-            $namaMetode = $paymentMethod?->nama_metode 
-                ?? $validated['metode_pembayaran'] 
+            $namaMetode = $validated['metode_pembayaran'] 
                 ?? $validated['motode_pembayaran'] 
-                ?? 'Transfer Bank';
+                ?? $paymentMethod?->nama_metode 
+                ?? 'Bayar Online';
 
             $subtotalSemua = 0;
             $itemsToCreate = [];

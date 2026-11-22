@@ -79,6 +79,7 @@ class ForgotPasswordController extends Controller
         Log::info("URL: {$resetUrl}");
 
         $sent = false;
+        $mailError = null;
         $brevoApiKey = env('BREVO_API_KEY');
 
         // 1. Pengiriman Utama: Menggunakan Brevo REST API (Sangat cepat, aman, & stabil tanpa isu port SMTP)
@@ -131,18 +132,32 @@ class ForgotPasswordController extends Controller
                 ]);
 
                 if ($response->successful()) {
+                    $sent = true;
                     Log::info("Email reset password berhasil dikirim via Brevo API ke: {$email}");
                 } else {
+                    $mailError = $response->json('message') ?? $response->body();
                     Log::warning("Brevo API error: " . $response->body());
                 }
             } catch (\Throwable $e) {
+                $mailError = $e->getMessage();
                 Log::warning("Pengiriman via Brevo API gagal: " . $e->getMessage());
             }
         }
 
-        return response()->json([
-            'message' => 'Tautan pemulihan kata sandi berhasil dikirim ke email Anda. Silakan periksa kotak masuk atau folder spam Anda.',
-        ]);
+        $responseData = [
+            'message' => 'Tautan pemulihan kata sandi telah diproses. Silakan periksa kotak masuk atau folder spam Anda.',
+            'sent' => $sent,
+        ];
+
+        // Di mode lokal/development, sertakan link langsung & error status agar pengujian tidak terhambat
+        if (config('app.debug') || app()->isLocal()) {
+            $responseData['debug_reset_url'] = $resetUrl;
+            if ($mailError) {
+                $responseData['mail_error'] = $mailError;
+            }
+        }
+
+        return response()->json($responseData);
     }
 
     /**

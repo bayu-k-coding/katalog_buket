@@ -61,6 +61,8 @@ const ResetPasswordPage = () => {
         password,
         password_confirmation: passwordConfirmation,
       });
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setIsSuccess(true);
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.errors?.token?.[0] || 'Gagal mengatur ulang kata sandi. Tautan mungkin telah kedaluwarsa.';
