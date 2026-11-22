@@ -5,6 +5,7 @@ import {
   Package,
   ShoppingBag,
   Store,
+  CreditCard,
   Users,
   ShieldCheck,
   ArrowLeft,
@@ -26,7 +27,10 @@ const AdminSidebar = () => {
     { name: 'Kategori Buket', path: '/admin/kategori', icon: Layers },
     { name: 'Profil Toko', path: '/admin/profil-toko', icon: Store },
     ...(isSuperAdmin
-      ? [{ name: 'Kelola Pengguna', path: '/admin/pengguna', icon: Users, badge: 'Super' }]
+      ? [
+          { name: 'Metode Pembayaran', path: '/admin/metode-pembayaran', icon: CreditCard, badge: 'Super' },
+          { name: 'Kelola Pengguna', path: '/admin/pengguna', icon: Users, badge: 'Super' }
+        ]
       : []),
     { name: 'Profil Akun Saya', path: '/admin/profil', icon: User }
   ];

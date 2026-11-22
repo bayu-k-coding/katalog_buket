@@ -14,6 +14,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
+import PaymentGatewayPage from './pages/PaymentGatewayPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -26,6 +27,7 @@ import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import AdminProductsPage from './pages/admin/AdminProductsPage';
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
 import AdminShopProfilePage from './pages/admin/AdminShopProfilePage';
+import AdminPaymentMethodsPage from './pages/admin/AdminPaymentMethodsPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 
 // Storefront Layout Wrapper
@@ -67,6 +69,7 @@ function App() {
               <Route path="/katalog/:id" element={<ProductDetailPage />} />
               <Route path="/keranjang" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/pembayaran/:orderId" element={<PaymentGatewayPage />} />
               <Route path="/pesanan-saya" element={<OrdersPage />} />
               <Route path="/profil" element={<ProfilePage />} />
 
@@ -89,6 +92,7 @@ function App() {
                 <Route path="kategori" element={<AdminCategoriesPage />} />
                 <Route path="profil-toko" element={<AdminShopProfilePage />} />
                 <Route element={<SuperAdminRoute />}>
+                  <Route path="metode-pembayaran" element={<AdminPaymentMethodsPage />} />
                   <Route path="pengguna" element={<AdminUsersPage />} />
                 </Route>
                 <Route path="profil" element={<ProfilePage isBackoffice={true} />} />

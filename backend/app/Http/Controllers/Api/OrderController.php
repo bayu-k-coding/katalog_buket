@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentMethod;
+use App\Models\Pelanggan;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -14,7 +17,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['pelanggan', 'items.product'])
+        $orders = Order::with(['pelanggan', 'user', 'items.product', 'paymentMethod'])
             ->orderBy('id_pesanan', 'desc')
             ->get();
 
@@ -23,52 +26,72 @@ class OrderController extends Controller
 
     public function customerOrders(Request $request)
     {
-        $pelangganId = $request->user()->id_pelanggan;
+        $user = auth('sanctum')->user() ?? $request->user();
 
-        $orders = Order::with(['items.product'])
-            ->where('id_pelanggan', $pelangganId)
-            ->orderBy('id_pesanan', 'desc')
-            ->get();
+        $query = Order::with(['pelanggan', 'user', 'items.product', 'paymentMethod'])
+            ->orderBy('id_pesanan', 'desc');
 
-        return response()->json(['data' => $orders]);
+        if ($user instanceof Pelanggan) {
+            $query->where('id_pelanggan', $user->id_pelanggan);
+        } elseif ($user instanceof User && !in_array($user->role, ['superadmin', 'admin'])) {
+            $query->where('id_user', $user->id_user);
+        }
+
+        return response()->json(['data' => $query->get()]);
     }
 
     public function show(int|string $id)
     {
-        $order = Order::with(['pelanggan', 'items.product'])->findOrFail($id);
+        $order = Order::with(['pelanggan', 'user', 'items.product', 'paymentMethod'])->findOrFail($id);
         return response()->json(['data' => $order]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'motode_pembayaran' => 'nullable|in:transfer,bayar ditempat',
-            'metode_pembayaran' => 'nullable|string',
-            'id_metode' => 'nullable',
+            'id_metode' => 'nullable|exists:payment_methods,id_metode',
+            'metode_pembayaran' => 'nullable|string|max:60',
+            'motode_pembayaran' => 'nullable|string|max:60',
             'nama_penerima' => 'required|string|max:60',
-            'telp_penerima' => 'required|string|max:16',
+            'telp_penerima' => 'required|string|max:20',
             'alamat_pengiriman' => 'required|string',
-            'catatan' => 'nullable|string|max:100',
-            'biaya_ongkir' => 'nullable|integer',
+            'catatan' => 'nullable|string|max:255',
+            'biaya_ongkir' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.id_produk' => 'required|exists:products,id_produk',
             'items.*.jumlah' => 'required|integer|min:1',
+        ], [
+            'nama_penerima.required' => 'Nama penerima pesanan wajib diisi.',
+            'telp_penerima.required' => 'Nomor telepon/WhatsApp penerima wajib diisi.',
+            'alamat_pengiriman.required' => 'Alamat lengkap pengiriman wajib diisi.',
+            'items.required' => 'Keranjang pesanan tidak boleh kosong.',
+            'items.min' => 'Pilih minimal satu item produk buket.',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
-            $pelangganId = $request->user()?->id_pelanggan ?? 1;
+            $user = auth('sanctum')->user() ?? $request->user();
+            $pelangganId = null;
+            $userId = null;
 
-            $metode = 'transfer';
-            if (!empty($validated['motode_pembayaran'])) {
-                $metode = $validated['motode_pembayaran'];
-            } elseif (!empty($validated['metode_pembayaran'])) {
-                $lower = strtolower($validated['metode_pembayaran']);
-                if (str_contains($lower, 'cod') || str_contains($lower, 'tempat')) {
-                    $metode = 'bayar ditempat';
-                }
-            } elseif (!empty($validated['id_metode']) && (int) $validated['id_metode'] === 2) {
-                $metode = 'bayar ditempat';
+            if ($user instanceof Pelanggan) {
+                $pelangganId = $user->id_pelanggan;
+            } elseif ($user instanceof User) {
+                $userId = $user->id_user;
+            } else {
+                $defaultPelanggan = Pelanggan::first();
+                $pelangganId = $defaultPelanggan?->id_pelanggan ?? 1;
             }
+
+            // Cari metode pembayaran dari database
+            $paymentMethod = null;
+            if (!empty($validated['id_metode'])) {
+                $paymentMethod = PaymentMethod::find($validated['id_metode']);
+            }
+
+            $namaMetode = $paymentMethod?->nama_metode 
+                ?? $validated['metode_pembayaran'] 
+                ?? $validated['motode_pembayaran'] 
+                ?? 'Transfer Bank';
 
             $subtotalSemua = 0;
             $itemsToCreate = [];
@@ -93,11 +116,15 @@ class OrderController extends Controller
 
             $ongkir = $validated['biaya_ongkir'] ?? 0;
             $totalHarga = $subtotalSemua + $ongkir;
-            $gatewayId = 'ORD-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+            $kodePesanan = 'ORD-' . date('Ymd') . '-' . strtoupper(Str::random(5));
 
             $order = Order::create([
+                'id_user' => $userId,
                 'id_pelanggan' => $pelangganId,
-                'motode_pembayaran' => $metode,
+                'id_metode' => $paymentMethod?->id_metode ?? $validated['id_metode'] ?? null,
+                'kode_pesanan' => $kodePesanan,
+                'gateway_order_id' => $kodePesanan,
+                'motode_pembayaran' => $namaMetode,
                 'tanggal_pesanan' => now(),
                 'nama_penerima' => $validated['nama_penerima'],
                 'telp_penerima' => $validated['telp_penerima'],
@@ -107,7 +134,6 @@ class OrderController extends Controller
                 'total_harga' => $totalHarga,
                 'status_pembayaran' => 'belum_bayar',
                 'status_pesanan' => 'baru',
-                'gateway_order_id' => $gatewayId,
             ]);
 
             foreach ($itemsToCreate as $item) {
@@ -116,8 +142,8 @@ class OrderController extends Controller
             }
 
             return response()->json([
-                'message' => 'Pesanan berhasil dibuat',
-                'data' => $order->load('items.product')
+                'message' => 'Pesanan buket berhasil dibuat.',
+                'data' => $order->load(['items.product', 'paymentMethod', 'pelanggan'])
             ], 201);
         });
     }
@@ -133,8 +159,8 @@ class OrderController extends Controller
         $order->update(['status_pesanan' => $validated['status_pesanan']]);
 
         return response()->json([
-            'message' => 'Status pesanan berhasil diperbarui',
-            'data' => $order
+            'message' => 'Status pengerjaan pesanan berhasil diperbarui.',
+            'data' => $order->load(['items.product', 'paymentMethod', 'pelanggan'])
         ]);
     }
 
@@ -152,7 +178,7 @@ class OrderController extends Controller
 
         if ($validated['status_pembayaran'] === 'lunas') {
             $updateData['dibayar_pada'] = now();
-            if ($order->status_pembayaran !== 'lunas') {
+            if ($order->status_pesanan === 'baru') {
                 $updateData['status_pesanan'] = 'diproses';
             }
         }
@@ -160,23 +186,47 @@ class OrderController extends Controller
         $order->update($updateData);
 
         return response()->json([
-            'message' => 'Status pembayaran berhasil diperbarui',
-            'data' => $order
+            'message' => 'Status pembayaran berhasil diverifikasi.',
+            'data' => $order->load(['items.product', 'paymentMethod', 'pelanggan'])
         ]);
     }
 
-    public function uploadProof(int|string $id)
+    public function uploadProof(Request $request, int|string $id)
     {
         $order = Order::findOrFail($id);
 
-        $order->update([
+        $updateData = [
             'dibayar_pada' => now(),
             'status_pembayaran' => 'menunggu_verifikasi'
-        ]);
+        ];
+
+        if ($request->hasFile('bukti_pembayaran')) {
+            $request->validate([
+                'bukti_pembayaran' => 'file|image|mimes:jpeg,png,jpg,webp|max:5120'
+            ], [
+                'bukti_pembayaran.image' => 'File bukti transfer harus berupa gambar.',
+                'bukti_pembayaran.mimes' => 'Format file gambar harus JPG, PNG, atau WEBP.',
+                'bukti_pembayaran.max' => 'Ukuran maksimal file bukti transfer adalah 5 MB.',
+            ]);
+
+            $file = $request->file('bukti_pembayaran');
+            $ext = $file->getClientOriginalExtension() ?: 'jpg';
+            $filename = 'proof_' . time() . '_' . Str::random(8) . '.' . strtolower($ext);
+            $destination = public_path('uploads/proofs');
+
+            if (!file_exists($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            $file->move($destination, $filename);
+            $updateData['bukti_pembayaran'] = url('uploads/proofs/' . $filename);
+        }
+
+        $order->update($updateData);
 
         return response()->json([
-            'message' => 'Konfirmasi pembayaran berhasil dikirim',
-            'data' => $order
+            'message' => 'Konfirmasi & bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.',
+            'data' => $order->load(['items.product', 'paymentMethod', 'pelanggan'])
         ]);
     }
 }

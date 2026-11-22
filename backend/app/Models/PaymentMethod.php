@@ -14,8 +14,11 @@ class PaymentMethod extends Model
     protected $fillable = [
         'nama_metode',
         'nomor_rekening',
+        'payment_url',
         'atas_nama',
+        'qr_image',
         'keterangan',
+        'instruksi',
         'status_aktif'
     ];
 

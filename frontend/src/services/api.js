@@ -80,14 +80,101 @@ export const productService = {
   }
 };
 
-export const orderService = {
-  getAll: () => Promise.resolve({ data: mockOrders }),
-  getMyOrders: () => Promise.resolve({ data: mockOrders }),
-  getById: (id) => Promise.resolve({ data: mockOrders.find(o => o.id_pesanan === Number(id)) })
+export const paymentMethodService = {
+  getAll: async () => {
+    try {
+      const res = await apiClient.get('/payment-methods');
+      return res.data;
+    } catch (e) {
+      console.warn('API /payment-methods unavailable, using fallback data:', e);
+      return { data: mockPaymentMethods };
+    }
+  },
+  getAdminAll: async () => {
+    const res = await apiClient.get('/admin/payment-methods');
+    return res.data;
+  },
+  update: async (id, data) => {
+    if (data instanceof FormData) {
+      if (!data.has('_method')) {
+        data.append('_method', 'PUT');
+      }
+      const res = await apiClient.post(`/admin/payment-methods/${id}`, data);
+      return res.data;
+    }
+    const res = await apiClient.put(`/admin/payment-methods/${id}`, data);
+    return res.data;
+  },
+  toggleStatus: async (id) => {
+    const res = await apiClient.patch(`/admin/payment-methods/${id}/toggle-status`);
+    return res.data;
+  }
 };
 
-export const paymentMethodService = {
-  getAll: () => Promise.resolve({ data: mockPaymentMethods })
+export const paymentGatewayService = {
+  getInvoice: async (orderId) => {
+    const res = await apiClient.get(`/payment-gateway/${orderId}`);
+    return res.data;
+  },
+  pay: async (orderId, channel = 'QRIS Instan') => {
+    const res = await apiClient.post(`/payment-gateway/${orderId}/pay`, { channel });
+    return res.data;
+  }
+};
+
+export const orderService = {
+  create: async (data) => {
+    const res = await apiClient.post('/orders', data);
+    return res.data;
+  },
+  getAll: async () => {
+    try {
+      const res = await apiClient.get('/admin/orders');
+      return res.data;
+    } catch (e) {
+      try {
+        const res = await apiClient.get('/orders');
+        return res.data;
+      } catch (err) {
+        console.warn('API /orders unavailable, using fallback:', err);
+        return { data: mockOrders };
+      }
+    }
+  },
+  getMyOrders: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const res = await apiClient.get('/my-orders');
+        return res.data;
+      }
+      const res = await apiClient.get('/my-orders-preview');
+      return res.data;
+    } catch (e) {
+      console.warn('API /my-orders unavailable, using fallback:', e);
+      return { data: mockOrders };
+    }
+  },
+  getById: async (id) => {
+    try {
+      const res = await apiClient.get(`/orders/${id}`);
+      return res.data;
+    } catch (e) {
+      return { data: mockOrders.find(o => o.id_pesanan === Number(id)) };
+    }
+  },
+  updateStatus: async (id, status) => {
+    const res = await apiClient.patch(`/admin/orders/${id}/status`, { status_pesanan: status });
+    return res.data;
+  },
+  verifyPayment: async (id, paymentStatus) => {
+    const res = await apiClient.patch(`/admin/orders/${id}/payment`, { status_pembayaran: paymentStatus });
+    return res.data;
+  },
+  uploadProof: async (id, formDataOrData) => {
+    const res = await apiClient.post(`/orders/${id}/upload-proof`, formDataOrData);
+    return res.data;
+  }
 };
 
 export const shopProfileService = {
@@ -145,6 +232,7 @@ export default {
   productService,
   orderService,
   paymentMethodService,
+  paymentGatewayService,
   shopProfileService,
   userService
 };

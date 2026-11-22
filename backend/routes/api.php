@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\PaymentGatewayController;
 use App\Http\Controllers\Api\ShopProfileController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DashboardController;
@@ -38,6 +39,10 @@ Route::get('/shop-profile', [ShopProfileController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/orders/{id}/upload-proof', [OrderController::class, 'uploadProof']);
+
+// Payment Gateway Publik
+Route::get('/payment-gateway/{orderId}', [PaymentGatewayController::class, 'show']);
+Route::post('/payment-gateway/{orderId}/pay', [PaymentGatewayController::class, 'pay']);
 
 
 // ==========================================
@@ -86,11 +91,17 @@ Route::prefix('admin')->group(function () {
 });
 
 // ==========================================
-// 4. Manajemen Pengguna (Superadmin Saja)
+// 4. Manajemen Pengguna & Metode Pembayaran (Superadmin Saja)
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/admin/users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
     Route::apiResource('admin/users', UserController::class);
+
+    // Superadmin: Manajemen Metode Pembayaran & Rekening
+    Route::get('/admin/payment-methods', [PaymentMethodController::class, 'adminIndex']);
+    Route::post('/admin/payment-methods/{id}', [PaymentMethodController::class, 'update']);
+    Route::put('/admin/payment-methods/{id}', [PaymentMethodController::class, 'update']);
+    Route::patch('/admin/payment-methods/{id}/toggle-status', [PaymentMethodController::class, 'toggleStatus']);
 });
 
 // Also expose unscoped versions for flexible frontend direct calls
