@@ -71,9 +71,10 @@ const PaymentGatewayPage = () => {
   const [midtransLoading, setMidtransLoading] = useState(false);
   const [snapToken, setSnapToken] = useState(null);
   const [snapRedirectUrl, setSnapRedirectUrl] = useState(null);
+  const [isProduction, setIsProduction] = useState(false);
 
-  // Countdown timer state (simulasi 15 menit)
-  const [timeLeft, setTimeLeft] = useState(15 * 60);
+  // Countdown timer state (simulasi 30 menit)
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
 
   // Fetch data invoice pesanan
   const fetchInvoice = async () => {
@@ -84,6 +85,7 @@ const PaymentGatewayPage = () => {
       if (res?.data) {
         setOrder(res.data.order);
         setPaymentMethod(res.data.payment_method || res.data.order?.payment_method);
+        setIsProduction(Boolean(res.data.midtrans?.is_production));
         if (res.data.midtrans?.snap_js) {
           loadSnapScript(res.data.midtrans.snap_js, res.data.midtrans.client_key);
         }
@@ -107,7 +109,7 @@ const PaymentGatewayPage = () => {
   }, [orderId]);
 
   // Real-time auto-polling: Pantau status pembayaran otomatis setiap 2.5 detik
-  // Begitu pelanggan membayar di e-wallet / m-Banking, layar otomatis langsung berganti ke Lunas
+  // Begitu transaksi diselesaikan di HP / simulator, layar otomatis berganti ke LUNAS
   useEffect(() => {
     if (!orderId || order?.status_pembayaran === 'lunas') return;
 
@@ -193,7 +195,7 @@ const PaymentGatewayPage = () => {
           window.snap.pay(res.token, {
             onSuccess: async (result) => {
               console.log('Payment Success:', result);
-              await handlePayNow(`Otomatis (${result?.payment_type || 'Online'})`);
+              await handlePayNow(`Midtrans Otomatis (${result?.payment_type || 'Online'})`);
             },
             onPending: (result) => {
               console.log('Payment Pending:', result);
@@ -274,7 +276,7 @@ const PaymentGatewayPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
       
-      {/* Top Trust Header */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FBF9F6] border border-borderMuted/40 p-4 sm:p-5 rounded-2xl shadow-xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
@@ -283,14 +285,14 @@ const PaymentGatewayPage = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-playfair font-bold text-lg text-gray-900">
-                Payment Gateway Resmi
+                Payment Gateway Otomatis
               </h1>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                 Verifikasi Otomatis 24/7
               </span>
             </div>
             <p className="text-[11px] text-textMuted">
-              {shopProfile?.nama_toko || 'Intan Buket Madiun'} • Transaksi Aman & Terenkripsi
+              {shopProfile?.nama_toko || 'Intan Buket Madiun'} • Transaksi Aman, Cepat & Terenkripsi
             </p>
           </div>
         </div>
@@ -313,7 +315,7 @@ const PaymentGatewayPage = () => {
         {/* Left Column: Transaction & Automatic Payment Interface */}
         <div className="lg:col-span-7 space-y-6">
 
-          {/* SUCCESS STATE (Otomatis Aktif Begitu Saldo Terpotong di E-Wallet / Bank) */}
+          {/* 1. SUCCESS STATE (Otomatis Aktif Begitu Pembayaran Berhasil) */}
           {isLunas ? (
             <div className="bg-white rounded-3xl border border-emerald-200 shadow-soft p-6 sm:p-8 text-center space-y-5 animate-fadeIn">
               <div className="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto ring-8 ring-emerald-50 animate-bounce">
@@ -328,7 +330,7 @@ const PaymentGatewayPage = () => {
                   Pembayaran Berhasil!
                 </h2>
                 <p className="text-xs text-textMuted max-w-sm mx-auto">
-                  Terima kasih, dana Anda telah berhasil diterima dan diverifikasi secara otomatis oleh sistem. Rangkaian buket Anda segera dipersiapkan.
+                  Terima kasih, pembayaran Anda telah berhasil diterima dan diverifikasi secara instan oleh sistem. Rangkaian buket Anda segera dipersiapkan oleh florist.
                 </p>
               </div>
 
@@ -340,7 +342,7 @@ const PaymentGatewayPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-textMuted">Metode:</span>
-                  <span className="font-semibold text-gray-900">{order.motode_pembayaran}</span>
+                  <span className="font-semibold text-gray-900">{order.motode_pembayaran || 'QRIS Otomatis'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-textMuted">Waktu Bayar:</span>
@@ -380,7 +382,7 @@ const PaymentGatewayPage = () => {
               </div>
             </div>
           ) : (
-            /* UNPAID / READY TO PAY STATE */
+            /* 2. UNPAID / READY TO PAY STATE */
             <div className="bg-white rounded-3xl border border-borderMuted/40 shadow-soft p-6 sm:p-8 space-y-6">
               
               {/* Total Tagihan Card */}
@@ -414,7 +416,7 @@ const PaymentGatewayPage = () => {
                   </button>
                 </div>
                 <p className="text-[11px] text-white/70">
-                  *Pembayaran diproses secara instan dan otomatis tanpa perlu verifikasi manual.
+                  *Nominal tagihan sudah otomatis terkunci di barcode QRIS (pembeli tidak perlu mengetik nominal).
                 </p>
               </div>
 
@@ -444,7 +446,7 @@ const PaymentGatewayPage = () => {
                   </div>
                 </div>
               ) : (
-                /* JIKA ONLINE (QRIS ALL PAYMENT & VIRTUAL ACCOUNT BANK) */
+                /* JIKA ONLINE: POP-UP MIDTRANS SNAP OTOMATIS */
                 <div className="border border-borderMuted/60 rounded-3xl p-6 bg-[#FBF9F6] space-y-5">
                   <div className="flex items-start justify-between border-b border-borderMuted/30 pb-4">
                     <div className="flex items-center gap-3">
@@ -453,10 +455,10 @@ const PaymentGatewayPage = () => {
                       </div>
                       <div>
                         <h4 className="font-bold text-sm sm:text-base text-gray-900">
-                          Pembayaran Otomatis
+                          Pembayaran Otomatis Pop-Up
                         </h4>
                         <p className="text-[11px] text-textMuted">
-                          Scan QRIS (GoPay, ShopeePay, DANA) & Transfer Bank (BRI, BCA)
+                          Scan QRIS Otomatis (GoPay, ShopeePay, DANA) & Transfer Bank (BRI, BCA)
                         </p>
                       </div>
                     </div>
@@ -467,10 +469,7 @@ const PaymentGatewayPage = () => {
 
                   {/* Channel Badges */}
                   <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-gray-600">
-                    <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">QRIS</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">GoPay</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">ShopeePay</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">DANA</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">QRIS (GoPay / ShopeePay / DANA)</span>
                     <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">Bank BRI</span>
                     <span className="px-2.5 py-1 rounded-lg bg-white border border-gray-200">Bank BCA</span>
                   </div>
@@ -479,10 +478,10 @@ const PaymentGatewayPage = () => {
                   <div className="bg-white p-4 rounded-2xl border border-borderMuted/40 text-xs text-gray-700 space-y-1.5">
                     <div className="flex items-center gap-2 font-bold text-emerald-800">
                       <Zap className="w-4 h-4 text-emerald-600 fill-emerald-600" />
-                      <span>Verifikasi Otomatis Tanpa Perlu Kirim Struk:</span>
+                      <span>Nominal Terisi Otomatis & Verifikasi Real-Time:</span>
                     </div>
                     <p className="text-[11px] text-textMuted leading-relaxed">
-                      Cukup klik tombol di bawah, pilih QRIS atau Bank Anda, dan selesaikan transaksi di HP. <strong>Layar ini akan otomatis mendeteksi dan berganti menjadi Lunas detik itu juga</strong> begitu saldo Anda terpotong.
+                      Klik tombol di bawah untuk membuka jendela pembayaran resmi. Saat QRIS di-scan di HP, <strong>nominal tagihan otomatis muncul tanpa perlu diketik manual</strong>. Layar ini akan <strong>otomatis berubah menjadi Lunas</strong> detik itu juga begitu Anda selesai membayar.
                     </p>
                   </div>
 
@@ -520,19 +519,43 @@ const PaymentGatewayPage = () => {
                     )}
                   </div>
 
-                  {/* Sandbox helper link for testing */}
-                  <div className="text-[10px] text-textMuted flex items-center justify-between border-t border-borderMuted/30 pt-3">
-                    <span>Sistem Pembayaran Terenkripsi</span>
-                    <a
-                      href="https://simulator.sandbox.midtrans.com/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary hover:underline flex items-center gap-1 font-semibold"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>Simulator Pembayaran Sandbox</span>
-                    </a>
-                  </div>
+                  {/* Sandbox helper box untuk pengujian di localhost */}
+                  {!isProduction && (
+                    <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 space-y-2.5">
+                      <div className="flex items-start gap-2.5">
+                        <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-amber-950 block">Uji Coba Pengembang (Mode Sandbox):</span>
+                          <p className="text-[11px] text-amber-800 leading-relaxed">
+                            Karena masih di mode Sandbox, scan langsung dari HP asli akan ditolak oleh bank (karena belum Production). Untuk menguji alur lunas otomatis, klik tombol instan di bawah:
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isProcessing}
+                          onClick={() => handlePayNow('Simulasi QRIS Sandbox')}
+                          className="flex-1 py-2.5 px-3 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                          <span>Simulasikan Bayar Lunas (Instan)</span>
+                        </button>
+
+                        <a
+                          href="https://simulator.sandbox.midtrans.com/qris/index"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="py-2.5 px-3 bg-white border border-amber-300 hover:bg-amber-100/60 text-amber-900 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                          <span>Simulator Midtrans</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
 
@@ -555,7 +578,7 @@ const PaymentGatewayPage = () => {
                   Ringkasan Pesanan Buket
                 </h3>
               </div>
-              <button type="button" className="text-textMuted">
+              <button type="button" className="text-textMuted cursor-pointer">
                 {showOrderDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             </div>
@@ -596,7 +619,7 @@ const PaymentGatewayPage = () => {
                     </span>
                   </div>
                   <div className="flex justify-between font-bold text-sm text-gray-900 border-t border-gray-100 pt-2">
-                    <span>Total Pembayaran</span>
+                    <span>Total Tagihan</span>
                     <span className="text-primary">{formatRupiah(order?.total_harga)}</span>
                   </div>
                 </div>
