@@ -25,16 +25,28 @@ class PaymentGatewayController extends Controller
             $this->checkMidtransStatusDirectly($order);
         }
 
-        // Ambil data metode pembayaran lengkap
+        // Ambil data metode pembayaran lengkap, QRIS toko resmi, dan Rekening Bank
         $method = null;
         if ($order->id_metode) {
             $method = PaymentMethod::find($order->id_metode);
         }
 
+        $allMethods = PaymentMethod::where('status_aktif', true)->get();
+        $qrisMethod = $allMethods->first(function ($m) {
+            return !empty($m->qr_image);
+        }) ?? PaymentMethod::find(3);
+
+        $bankMethods = $allMethods->filter(function ($m) {
+            $name = strtolower($m->nama_metode);
+            return (str_contains($name, 'bri') || str_contains($name, 'bca') || str_contains($name, 'bank')) && !empty($m->nomor_rekening) && $m->nomor_rekening !== '-';
+        })->values();
+
         return response()->json([
             'data' => [
                 'order' => $order->fresh(['items.product', 'paymentMethod', 'pelanggan']),
                 'payment_method' => $method,
+                'qris_method' => $qrisMethod,
+                'bank_methods' => $bankMethods,
                 'midtrans' => [
                     'client_key' => config('midtrans.client_key', 'Mid-client-pDgZI-OMnkti_hva'),
                     'snap_js' => config('midtrans.snap_js', 'https://app.sandbox.midtrans.com/snap/snap.js'),
