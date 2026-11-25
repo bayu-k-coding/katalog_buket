@@ -164,6 +164,49 @@ class OrderController extends Controller
         ]);
     }
 
+    public function cancelByCustomer(Request $request, int|string $id)
+    {
+        $order = Order::findOrFail($id);
+        $user = auth('sanctum')->user() ?? $request->user();
+
+        if ($user instanceof Pelanggan && (int) $order->id_pelanggan !== (int) $user->id_pelanggan) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses untuk membatalkan pesanan ini.'
+            ], 403);
+        }
+
+        if ($user instanceof User && !in_array($user->role, ['superadmin', 'admin']) && (int) $order->id_user !== (int) $user->id_user) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses untuk membatalkan pesanan ini.'
+            ], 403);
+        }
+
+        if ($order->status_pesanan === 'dibatalkan') {
+            return response()->json([
+                'message' => 'Pesanan ini sudah dibatalkan sebelumnya.'
+            ], 422);
+        }
+
+        if ($order->status_pembayaran === 'lunas') {
+            return response()->json([
+                'message' => 'Pesanan yang sudah dibayar lunas tidak dapat dibatalkan langsung. Silakan hubungi admin.'
+            ], 422);
+        }
+
+        if ($order->status_pesanan !== 'baru') {
+            return response()->json([
+                'message' => 'Pesanan yang sudah diproses tidak dapat dibatalkan. Silakan hubungi admin.'
+            ], 422);
+        }
+
+        $order->update(['status_pesanan' => 'dibatalkan']);
+
+        return response()->json([
+            'message' => 'Pesanan berhasil dibatalkan.',
+            'data' => $order->load(['items.product', 'paymentMethod', 'pelanggan'])
+        ]);
+    }
+
     public function verifyPayment(Request $request, int|string $id)
     {
         $order = Order::findOrFail($id);

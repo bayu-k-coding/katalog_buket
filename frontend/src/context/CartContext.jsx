@@ -12,23 +12,7 @@ export const CartProvider = ({ children }) => {
         return [];
       }
     }
-    // Default initial mock cart items matching wireframe
-    return [
-      {
-        id_produk: 1,
-        nama_produk: 'Buket Wisuda Mawar Merah & Boneka Teddy',
-        harga: 150000,
-        jumlah: 1,
-        foto: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=400&q=80'
-      },
-      {
-        id_produk: 2,
-        nama_produk: 'Buket Uang Tower 10 Lembar Floral Gold',
-        harga: 200000,
-        jumlah: 1,
-        foto: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=400&q=80'
-      }
-    ];
+    return [];
   });
 
   useEffect(() => {

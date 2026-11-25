@@ -5,7 +5,6 @@ import {
   Heart,
   Share2,
   Check,
-  Star,
   Truck,
   ShieldCheck,
   Sparkles,
@@ -13,7 +12,6 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { productService } from '../services/api';
-import { mockProducts } from '../services/mockData';
 import { useCart } from '../context/CartContext';
 import { useShopProfile } from '../context/ShopProfileContext';
 import { formatRupiah } from '../components/ProductCard';
@@ -33,9 +31,6 @@ const ProductDetailPage = () => {
     productService.getById(id).then((res) => {
       if (res?.data) {
         setProduct(res.data);
-      } else {
-        const found = mockProducts.find(p => p.id_produk === Number(id));
-        setProduct(found || mockProducts[0]);
       }
     });
   }, [id]);
@@ -140,10 +135,9 @@ const ProductDetailPage = () => {
               <span className="px-3 py-1 bg-primary-subtle text-primary text-xs font-semibold rounded-full border border-primary/20">
                 {product.nama_kategori}
               </span>
-              <div className="flex items-center gap-1 text-xs text-textMuted">
-                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                <span className="font-bold text-gray-900">{product.rating || '4.9'}</span>
-                <span>({product.sold_count || 120} Terjual)</span>
+              <div className="flex items-center gap-1.5 text-xs text-textMuted">
+                <ShoppingBag className="w-4 h-4 text-primary" />
+                <span>{product.sold_count ?? 0} Terjual</span>
               </div>
             </div>
 

@@ -265,7 +265,18 @@ const AdminOrdersPage = () => {
         </div>
 
         {/* Selected Order Detail & Actions Panel */}
-        {selectedOrder ? (
+        {selectedOrder ? (() => {
+          const selectedIsCod = (() => {
+            const label = (
+              selectedOrder.motode_pembayaran ||
+              selectedOrder.metode_pembayaran ||
+              selectedOrder.payment_method?.nama_metode ||
+              ''
+            ).toLowerCase();
+            return label.includes('cod') || label.includes('tunai') || label.includes('tempat');
+          })();
+
+          return (
           <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-borderMuted/30 shadow-soft space-y-6 sticky top-8">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
@@ -334,42 +345,62 @@ const AdminOrdersPage = () => {
 
             {/* Action Verifikasi Pembayaran */}
             <div className="space-y-2 pt-2 border-t border-gray-100">
-              <h4 className="font-semibold text-xs text-gray-700">Verifikasi Pembayaran:</h4>
-              <div className="grid grid-cols-2 gap-2">
+              <h4 className="font-semibold text-xs text-gray-700">
+                {selectedIsCod ? 'Pembayaran Tunai (COD):' : 'Verifikasi Pembayaran:'}
+              </h4>
+              {selectedIsCod ? (
                 <button
                   type="button"
                   disabled={isUpdating}
                   onClick={() => handleVerifyPayment('lunas')}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     selectedOrder.status_pembayaran === 'lunas'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
                   }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Verifikasi Lunas</span>
+                  <span>{selectedOrder.status_pembayaran === 'lunas' ? 'Sudah Lunas (Tunai)' : 'Tandai Lunas (Tunai Diterima)'}</span>
                 </button>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={isUpdating}
+                    onClick={() => handleVerifyPayment('lunas')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      selectedOrder.status_pembayaran === 'lunas'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Verifikasi Lunas</span>
+                  </button>
 
-                <button
-                  type="button"
-                  disabled={isUpdating}
-                  onClick={() => handleVerifyPayment('ditolak')}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                    selectedOrder.status_pembayaran === 'ditolak'
-                      ? 'bg-rose-600 text-white shadow-sm'
-                      : 'bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100'
-                  }`}
-                >
-                  <XCircle className="w-3.5 h-3.5" />
-                  <span>Tolak Bukti</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    disabled={isUpdating}
+                    onClick={() => handleVerifyPayment('ditolak')}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      selectedOrder.status_pembayaran === 'ditolak'
+                        ? 'bg-rose-600 text-white shadow-sm'
+                        : 'bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100'
+                    }`}
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Tolak Bukti</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Workflow status buttons */}
             <div className="space-y-2 pt-2 border-t border-gray-100">
-              <h4 className="font-semibold text-xs text-gray-700">Perbarui Status Pengerjaan & Pengiriman:</h4>
-              <div className="grid grid-cols-3 gap-2">
+              <h4 className="font-semibold text-xs text-gray-700">
+                {selectedIsCod ? 'Perbarui Status Pesanan:' : 'Perbarui Status Pengerjaan & Pengiriman:'}
+              </h4>
+              <div className={`grid ${selectedIsCod ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
                 <button
                   disabled={isUpdating}
                   onClick={() => handleUpdateOrderStatus('diproses')}
@@ -381,17 +412,19 @@ const AdminOrdersPage = () => {
                 >
                   Diproses
                 </button>
-                <button
-                  disabled={isUpdating}
-                  onClick={() => handleUpdateOrderStatus('dikirim')}
-                  className={`py-2 px-2 rounded-xl text-xs font-semibold transition-colors ${
-                    selectedOrder.status_pesanan === 'dikirim'
-                      ? 'bg-purple-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Dikirim
-                </button>
+                {!selectedIsCod && (
+                  <button
+                    disabled={isUpdating}
+                    onClick={() => handleUpdateOrderStatus('dikirim')}
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold transition-colors ${
+                      selectedOrder.status_pesanan === 'dikirim'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Dikirim
+                  </button>
+                )}
                 <button
                   disabled={isUpdating}
                   onClick={() => handleUpdateOrderStatus('selesai')}
@@ -404,10 +437,29 @@ const AdminOrdersPage = () => {
                   Selesai
                 </button>
               </div>
+
+              <button
+                type="button"
+                disabled={isUpdating || selectedOrder.status_pesanan === 'dibatalkan'}
+                onClick={() => {
+                  if (window.confirm('Yakin ingin membatalkan pesanan ini?')) {
+                    handleUpdateOrderStatus('dibatalkan');
+                  }
+                }}
+                className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                  selectedOrder.status_pesanan === 'dibatalkan'
+                    ? 'bg-rose-600 text-white shadow-sm cursor-default'
+                    : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                }`}
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                <span>{selectedOrder.status_pesanan === 'dibatalkan' ? 'Pesanan Dibatalkan' : 'Batalkan Pesanan'}</span>
+              </button>
             </div>
 
           </div>
-        ) : (
+          );
+        })() : (
           <div className="lg:col-span-5 bg-white p-12 text-center rounded-3xl border border-borderMuted/30 text-textMuted text-xs">
             Pilih pesanan di tabel sebelah kiri untuk melihat detail.
           </div>

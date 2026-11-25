@@ -3,20 +3,19 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, PackageX, Sparkles } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { productService, categoryService } from '../services/api';
-import { mockProducts, mockCategories } from '../services/mockData';
 
 const CatalogPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedCategoryFromUrl = searchParams.get('kategori');
 
-  const [products, setProducts] = useState(mockProducts);
-  const [categories, setCategories] = useState(mockCategories);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(
     selectedCategoryFromUrl ? Number(selectedCategoryFromUrl) : 'all'
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('popular');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Sync category when URL params change
@@ -28,16 +27,23 @@ const CatalogPage = () => {
   }, [selectedCategoryFromUrl]);
 
   useEffect(() => {
-    productService.getAll().then((res) => {
-      if (res?.data) {
-        setProducts(res.data);
+    let active = true;
+    setLoading(true);
+    Promise.allSettled([productService.getAll(), categoryService.getAll()]).then(
+      ([prodRes, catRes]) => {
+        if (!active) return;
+        if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value?.data)) {
+          setProducts(prodRes.value.data);
+        }
+        if (catRes.status === 'fulfilled' && Array.isArray(catRes.value?.data)) {
+          setCategories(catRes.value.data);
+        }
+        setLoading(false);
       }
-    });
-    categoryService.getAll().then((res) => {
-      if (res?.data) {
-        setCategories(res.data);
-      }
-    });
+    );
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleCategoryChange = (catId) => {
@@ -171,7 +177,23 @@ const CatalogPage = () => {
       </div>
 
       {/* Product Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-borderMuted/40 overflow-hidden animate-pulse"
+            >
+              <div className="aspect-[4/3] bg-[#EDE9E4]" />
+              <div className="p-5 space-y-3">
+                <div className="h-3 w-20 rounded bg-[#EDE9E4]" />
+                <div className="h-4 w-3/4 rounded bg-[#EDE9E4]" />
+                <div className="h-5 w-1/2 rounded bg-[#EDE9E4]" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id_produk} product={product} />

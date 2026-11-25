@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Star, Check, Gift } from 'lucide-react';
+import { ShoppingBag, Check, Gift } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export const formatRupiah = (number) => {
@@ -75,11 +75,10 @@ const ProductCard = ({ product }) => {
 
       {/* Product Body */}
       <div className="p-4 sm:p-5 flex flex-col flex-1">
-        {/* Rating & Sold count */}
+        {/* Sold count */}
         <div className="flex items-center gap-1.5 text-xs text-textMuted mb-2">
-          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-          <span className="font-semibold text-gray-800">{product.rating || '4.9'}</span>
-          <span>• Terjual {product.sold_count || 50}+</span>
+          <ShoppingBag className="w-3.5 h-3.5 text-primary" />
+          <span>Terjual {product.sold_count ?? 0}</span>
         </div>
 
         {/* Product Title */}

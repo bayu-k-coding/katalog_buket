@@ -4,17 +4,12 @@ import {
   TrendingUp,
   ShoppingBag,
   Package,
-  Users,
   AlertTriangle,
   ArrowRight,
-  Clock,
-  CheckCircle2,
-  Sparkles,
   ShieldAlert,
   Loader2
 } from 'lucide-react';
-import { orderService, productService, userService } from '../../services/api';
-import { mockOrders, mockProducts, mockUsers } from '../../services/mockData';
+import { orderService, productService } from '../../services/api';
 import { formatRupiah } from '../../components/ProductCard';
 
 const AdminDashboardPage = () => {
@@ -23,41 +18,26 @@ const AdminDashboardPage = () => {
 
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
-  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        const [ordersRes, productsRes, usersRes] = await Promise.allSettled([
+        const [ordersRes, productsRes] = await Promise.allSettled([
           orderService.getAll(),
-          productService.getAll(),
-          userService.getAll()
+          productService.getAll()
         ]);
 
-        if (ordersRes.status === 'fulfilled' && ordersRes.value?.data) {
+        if (ordersRes.status === 'fulfilled' && Array.isArray(ordersRes.value?.data)) {
           setOrders(ordersRes.value.data);
-        } else {
-          setOrders(mockOrders);
         }
 
-        if (productsRes.status === 'fulfilled' && productsRes.value?.data) {
+        if (productsRes.status === 'fulfilled' && Array.isArray(productsRes.value?.data)) {
           setProducts(productsRes.value.data);
-        } else {
-          setProducts(mockProducts);
-        }
-
-        if (usersRes.status === 'fulfilled' && usersRes.value?.data) {
-          setUsers(usersRes.value.data);
-        } else {
-          setUsers(mockUsers);
         }
       } catch (err) {
         console.warn('Gagal memuat ringkasan dashboard:', err);
-        setOrders(mockOrders);
-        setProducts(mockProducts);
-        setUsers(mockUsers);
       } finally {
         setIsLoading(false);
       }
@@ -195,14 +175,22 @@ const AdminDashboardPage = () => {
                           <span className="text-xs text-textMuted">• {order.nama_penerima || order.pelanggan?.nama_pelanggan || 'Pelanggan'}</span>
                         </div>
                         <span className="text-[11px] text-textMuted block mt-0.5">
-                          {order.items?.length || 1} item • {order.motode_pembayaran || order.metode_pembayaran || 'Transfer'}
+                          {order.items?.length ?? 0} item • {order.motode_pembayaran || order.metode_pembayaran || 'Transfer'}
                         </span>
                       </div>
 
                       <div className="text-right">
                         <div className="font-bold text-xs text-primary">{formatRupiah(order.total_harga)}</div>
                         <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase mt-0.5 ${
-                          order.status_pesanan === 'selesai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          order.status_pesanan === 'selesai'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : order.status_pesanan === 'diproses'
+                            ? 'bg-blue-100 text-blue-800'
+                            : order.status_pesanan === 'dikirim'
+                            ? 'bg-purple-100 text-purple-800'
+                            : order.status_pesanan === 'dibatalkan'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
                         }`}>
                           {order.status_pesanan}
                         </span>
@@ -230,8 +218,19 @@ const AdminDashboardPage = () => {
                 ) : (
                   unavailableProducts.map((p) => (
                     <div key={p.id_produk} className="flex items-center gap-3 p-2 rounded-xl bg-gray-50">
-                      <div className="w-10 h-10 rounded-lg bg-[#EDE9E4] border border-borderMuted/40 shrink-0 flex items-center justify-center text-[9px] font-bold text-textMuted uppercase">
-                        IMG
+                      <div className="w-10 h-10 rounded-lg bg-[#EDE9E4] border border-borderMuted/40 shrink-0 overflow-hidden flex items-center justify-center text-textMuted">
+                        {p.foto ? (
+                          <img
+                            src={p.foto}
+                            alt={p.nama_produk}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <Package className="w-4 h-4" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-gray-900 truncate">{p.nama_produk}</p>

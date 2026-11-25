@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   PackageCheck,
@@ -8,16 +8,9 @@ import {
   AlertCircle,
   FileText,
   CreditCard,
-  ShieldCheck,
-  UploadCloud,
-  Check,
   X,
   Loader2,
-  Copy,
-  QrCode,
-  Building2,
-  Banknote,
-  Image as ImageIcon
+  XCircle
 } from 'lucide-react';
 import { orderService } from '../services/api';
 import { formatRupiah } from '../components/ProductCard';
@@ -32,9 +25,9 @@ const statusBadgeStyles = {
 
 const paymentStatusStyles = {
   belum_bayar: { bg: 'bg-rose-50 text-rose-700 border-rose-200', label: 'Belum Bayar' },
-  menunggu_verifikasi: { bg: 'bg-amber-50 text-amber-800 border-amber-200', label: 'Menunggu Verifikasi Admin' },
+  menunggu_verifikasi: { bg: 'bg-amber-50 text-amber-800 border-amber-200', label: 'Menunggu Pembayaran' },
   lunas: { bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', label: 'Pembayaran Lunas' },
-  ditolak: { bg: 'bg-red-50 text-red-800 border-red-200', label: 'Bukti Ditolak' },
+  ditolak: { bg: 'bg-red-50 text-red-800 border-red-200', label: 'Pembayaran Ditolak' },
   kedaluwarsa: { bg: 'bg-gray-100 text-gray-700 border-gray-300', label: 'Kedaluwarsa' }
 };
 
@@ -45,15 +38,8 @@ const OrdersPage = () => {
 
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Modal upload bukti bayar
-  const [uploadModalOrder, setUploadModalOrder] = useState(null);
-  const [proofFile, setProofFile] = useState(null);
-  const [proofPreview, setProofPreview] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState('');
-  const [uploadError, setUploadError] = useState('');
-  const fileInputRef = useRef(null);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [actionNotice, setActionNotice] = useState(null);
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -87,67 +73,75 @@ const OrdersPage = () => {
     fetchOrders();
   }, []);
 
-  const handleOpenUploadModal = (order) => {
-    setUploadModalOrder(order);
-    setProofFile(null);
-    setProofPreview(null);
-    setUploadSuccess('');
-    setUploadError('');
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setUploadError('Ukuran gambar maksimal 5 MB.');
-        return;
-      }
-      setProofFile(file);
-      setProofPreview(URL.createObjectURL(file));
-      setUploadError('');
+  const handleCancelOrder = async (order) => {
+    const orderLabel = order.kode_pesanan || `#${order.id_pesanan}`;
+    if (!window.confirm(`Yakin ingin membatalkan pesanan ${orderLabel}?`)) {
+      return;
     }
-  };
 
-  const handleSubmitProof = async (e) => {
-    e.preventDefault();
-    if (!uploadModalOrder) return;
-
-    setIsUploading(true);
-    setUploadError('');
-    setUploadSuccess('');
+    setCancellingId(order.id_pesanan);
+    setActionNotice(null);
 
     try {
-      const formData = new FormData();
-      if (proofFile) {
-        formData.append('bukti_pembayaran', proofFile);
-      }
+      const res = await orderService.cancelOrder(order.id_pesanan);
+      const updatedOrder = res?.data || { ...order, status_pesanan: 'dibatalkan' };
 
-      const res = await orderService.uploadProof(uploadModalOrder.id_pesanan, formData);
-
-      setUploadSuccess('Bukti transfer berhasil dikirim. Admin akan segera memverifikasi pesanan Anda.');
-
-      // Update state lokal
       setOrders(prev =>
-        prev.map(o =>
-          o.id_pesanan === uploadModalOrder.id_pesanan
-            ? { ...o, status_pembayaran: 'menunggu_verifikasi', bukti_pembayaran: res?.data?.bukti_pembayaran || o.bukti_pembayaran }
-            : o
-        )
+        prev.map(o => (o.id_pesanan === order.id_pesanan ? updatedOrder : o))
       );
 
-      setTimeout(() => {
-        setUploadModalOrder(null);
-      }, 1500);
+      // Sinkronkan juga jika pesanan tersimpan di guest_orders localStorage
+      const guestOrders = JSON.parse(localStorage.getItem('guest_orders') || '[]');
+      if (guestOrders.length > 0) {
+        const nextGuestOrders = guestOrders.map(go =>
+          go.id_pesanan === order.id_pesanan ? { ...go, status_pesanan: 'dibatalkan' } : go
+        );
+        localStorage.setItem('guest_orders', JSON.stringify(nextGuestOrders));
+      }
+
+      setActionNotice({
+        type: 'success',
+        text: res?.message || `Pesanan ${orderLabel} berhasil dibatalkan.`
+      });
     } catch (err) {
-      console.error('Gagal mengunggah bukti:', err);
-      setUploadError(err.response?.data?.message || 'Gagal mengirimkan bukti pembayaran.');
+      console.error('Gagal membatalkan pesanan:', err);
+      setActionNotice({
+        type: 'error',
+        text: err.response?.data?.message || 'Gagal membatalkan pesanan. Silakan coba lagi.'
+      });
     } finally {
-      setIsUploading(false);
+      setCancellingId(null);
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {/* Action Notice */}
+      {actionNotice && (
+        <div
+          className={`p-4 rounded-2xl border flex items-center justify-between gap-3 shadow-soft animate-fadeIn text-xs ${
+            actionNotice.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            {actionNotice.type === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            )}
+            <span className="font-semibold">{actionNotice.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActionNotice(null)}
+            className="text-gray-400 hover:text-gray-700"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       {/* Success banner if redirected from checkout */}
       {showSuccessNotice && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-5 rounded-2xl flex items-start gap-3.5 shadow-soft animate-fadeIn">
@@ -157,7 +151,7 @@ const OrdersPage = () => {
               Pesanan Buket Berhasil Dibuat! {recentOrderId ? `(ID Pesanan: #${recentOrderId})` : ''}
             </strong>
             <p className="text-emerald-800 leading-relaxed">
-              Terima kasih! Pesanan buket Anda telah tersimpan di sistem kami. Silakan selesaikan pembayaran sesuai metode yang Anda pilih dan konfirmasikan di bawah ini.
+              Terima kasih! Pesanan buket Anda telah tersimpan di sistem kami. Silakan selesaikan pembayaran sesuai metode yang Anda pilih.
             </p>
           </div>
         </div>
@@ -208,8 +202,11 @@ const OrdersPage = () => {
             const badge = statusBadgeStyles[order.status_pesanan] || statusBadgeStyles.baru;
             const payBadge = paymentStatusStyles[order.status_pembayaran] || paymentStatusStyles.belum_bayar;
             const BadgeIcon = badge.icon;
-            const isCod = order.motode_pembayaran?.toLowerCase().includes('cod') || order.motode_pembayaran?.toLowerCase().includes('tempat');
-            const canUploadProof = !isCod && order.status_pembayaran !== 'lunas';
+            const methodLabel = (order.motode_pembayaran || order.metode_pembayaran || order.payment_method?.nama_metode || '').toLowerCase();
+            const isCod = methodLabel.includes('cod') || methodLabel.includes('tunai') || methodLabel.includes('tempat');
+            const isCancelled = order.status_pesanan === 'dibatalkan';
+            const canCancel = order.status_pesanan === 'baru' && order.status_pembayaran !== 'lunas';
+            const canPayOnline = !isCod && !isCancelled && order.status_pembayaran !== 'lunas';
 
             return (
               <div
@@ -289,7 +286,7 @@ const OrdersPage = () => {
 
                   {/* Action buttons */}
                   <div className="flex flex-wrap items-center gap-2.5">
-                    {order.status_pembayaran !== 'lunas' && (
+                    {canPayOnline && (
                       <Link
                         to={`/pembayaran/${order.id_pesanan}`}
                         className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover shadow-sm transition-all flex items-center gap-1.5"
@@ -299,18 +296,7 @@ const OrdersPage = () => {
                       </Link>
                     )}
 
-                    {canUploadProof && (
-                      <button
-                        type="button"
-                        onClick={() => handleOpenUploadModal(order)}
-                        className="px-3 py-2 rounded-xl bg-white border border-borderMuted/60 text-gray-700 hover:text-primary hover:border-primary text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <UploadCloud className="w-3.5 h-3.5" />
-                        <span>{order.status_pembayaran === 'menunggu_verifikasi' ? 'Kirim Ulang Bukti' : 'Unggah Bukti Manual'}</span>
-                      </button>
-                    )}
-
-                    {isCod && (
+                    {isCod && !isCancelled && order.status_pembayaran !== 'lunas' && (
                       <span className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
                         <Truck className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Bayar Tunai saat Terima (COD)</span>
@@ -323,123 +309,27 @@ const OrdersPage = () => {
                         <span>Lunas Terverifikasi</span>
                       </span>
                     )}
+
+                    {canCancel && (
+                      <button
+                        type="button"
+                        disabled={cancellingId === order.id_pesanan}
+                        onClick={() => handleCancelOrder(order)}
+                        className="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      >
+                        {cancellingId === order.id_pesanan ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <XCircle className="w-3.5 h-3.5" />
+                        )}
+                        <span>Batalkan Pesanan</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Modal Upload Bukti Transfer */}
-      {uploadModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-elevated border border-borderMuted/40">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
-                <h3 className="font-playfair font-bold text-lg text-gray-900">
-                  Konfirmasi Pembayaran
-                </h3>
-                <p className="text-[11px] text-textMuted">
-                  Kode: {uploadModalOrder.kode_pesanan || `#${uploadModalOrder.id_pesanan}`} • {formatRupiah(uploadModalOrder.total_harga)}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setUploadModalOrder(null)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {uploadSuccess ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                <span className="text-xs font-semibold">{uploadSuccess}</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitProof} className="space-y-4">
-                {uploadError && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                    <span>{uploadError}</span>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-gray-700">
-                    Foto Bukti Struk Transfer / Tangkapan Layar (Screenshot)
-                  </label>
-
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-
-                  {proofPreview ? (
-                    <div className="relative rounded-2xl overflow-hidden border border-borderMuted/60 bg-gray-50 p-2 text-center">
-                      <img
-                        src={proofPreview}
-                        alt="Preview Bukti"
-                        className="max-h-48 mx-auto rounded-xl object-contain"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProofFile(null);
-                          setProofPreview(null);
-                        }}
-                        className="mt-2 text-xs text-rose-600 hover:underline font-semibold"
-                      >
-                        Ganti Foto
-                      </button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-primary/30 hover:border-primary rounded-2xl p-6 text-center cursor-pointer transition-colors bg-primary/5 hover:bg-primary/10"
-                    >
-                      <UploadCloud className="w-8 h-8 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-bold text-gray-800">Klik untuk Pilih Gambar Bukti</p>
-                      <p className="text-[11px] text-textMuted mt-1">Format JPG, PNG, atau WEBP (Maksimal 5 MB)</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-2.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setUploadModalOrder(null)}
-                    className="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50"
-                  >
-                    Batal
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={isUploading}
-                    className="px-5 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover shadow-sm flex items-center gap-2 disabled:bg-gray-400"
-                  >
-                    {isUploading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Mengirimkan...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Kirim Bukti Pembayaran</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
         </div>
       )}
     </div>

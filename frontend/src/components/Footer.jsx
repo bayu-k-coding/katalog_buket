@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Clock, Instagram, Heart } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useShopProfile } from '../context/ShopProfileContext';
+import { categoryService } from '../services/api';
 
 const Footer = () => {
   const { shopProfile: profile } = useShopProfile();
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    categoryService.getAll().then((res) => {
+      if (Array.isArray(res?.data)) {
+        setCategories(res.data.slice(0, 5));
+      }
+    });
+  }, []);
 
   const rawPhone = profile.no_kontak || profile.whatsapp || '081234567890';
   const cleanPhone = rawPhone.replace(/\D/g, '');
@@ -69,31 +79,24 @@ const Footer = () => {
               Koleksi Buket
             </h4>
             <ul className="space-y-3 text-sm text-gray-300">
-              <li>
-                <Link to="/katalog?kategori=1" className="hover:text-primary-light transition-colors">
-                  Buket Wisuda & Boneka
-                </Link>
-              </li>
-              <li>
-                <Link to="/katalog?kategori=2" className="hover:text-primary-light transition-colors">
-                  Buket Uang Elegan
-                </Link>
-              </li>
-              <li>
-                <Link to="/katalog?kategori=3" className="hover:text-primary-light transition-colors">
-                  Buket Snack Ceria
-                </Link>
-              </li>
-              <li>
-                <Link to="/katalog?kategori=4" className="hover:text-primary-light transition-colors">
-                  Custom Hand Bouquet
-                </Link>
-              </li>
-              <li>
-                <Link to="/katalog?kategori=5" className="hover:text-primary-light transition-colors">
-                  Dried Flower (Bunga Kering)
-                </Link>
-              </li>
+              {categories.length > 0 ? (
+                categories.map((cat) => (
+                  <li key={cat.id_kategori}>
+                    <Link
+                      to={`/katalog?kategori=${cat.id_kategori}`}
+                      className="hover:text-primary-light transition-colors"
+                    >
+                      {cat.nama_kategori}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li>
+                  <Link to="/katalog" className="hover:text-primary-light transition-colors">
+                    Semua Koleksi Buket
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 

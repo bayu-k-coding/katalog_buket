@@ -1,4 +1,5 @@
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Layers,
@@ -14,15 +15,40 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useShopProfile } from '../context/ShopProfileContext';
+import apiClient from '../services/apiClient';
 
 const AdminSidebar = () => {
   const { user, logout, isSuperAdmin } = useAuth();
   const { shopProfile } = useShopProfile();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    apiClient
+      .get('/admin/stats')
+      .then((res) => {
+        if (active && typeof res.data?.pending_orders === 'number') {
+          setNewOrdersCount(res.data.pending_orders);
+        }
+      })
+      .catch(() => {
+        // silent fail
+      });
+    return () => {
+      active = false;
+    };
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Dashboard Ringkas', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Pesanan Masuk', path: '/admin/pesanan', icon: ShoppingBag, badge: 'Baru' },
+    {
+      name: 'Pesanan Masuk',
+      path: '/admin/pesanan',
+      icon: ShoppingBag,
+      badge: newOrdersCount > 0 ? String(newOrdersCount) : null
+    },
     { name: 'Produk Buket', path: '/admin/produk', icon: Package },
     { name: 'Kategori Buket', path: '/admin/kategori', icon: Layers },
     { name: 'Profil Toko', path: '/admin/profil-toko', icon: Store },

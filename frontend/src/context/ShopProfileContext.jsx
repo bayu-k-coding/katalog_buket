@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { shopProfileService } from '../services/api';
-import { mockShopProfile } from '../services/mockData';
+
+const DEFAULT_SHOP_PROFILE = {
+  nama_toko: 'Intan Buket',
+  deskripsi: '',
+  alamat: '',
+  jam_buka: '',
+  no_kontak: '',
+  email_toko: '',
+  logo: null
+};
 
 const ShopProfileContext = createContext();
 
@@ -11,10 +20,10 @@ export const ShopProfileProvider = ({ children }) => {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return mockShopProfile;
+        return DEFAULT_SHOP_PROFILE;
       }
     }
-    return mockShopProfile;
+    return DEFAULT_SHOP_PROFILE;
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +73,7 @@ export const useShopProfile = () => {
   const context = useContext(ShopProfileContext);
   if (!context) {
     return {
-      shopProfile: mockShopProfile,
+      shopProfile: DEFAULT_SHOP_PROFILE,
       isLoading: false,
       updateShopProfile: () => {},
       refreshShopProfile: () => {}

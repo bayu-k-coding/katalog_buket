@@ -11,7 +11,12 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with('category')
+            ->withSum(['orderItems as sold_count' => function ($q) {
+                $q->whereHas('order', function ($oq) {
+                    $oq->where('status_pesanan', '!=', 'dibatalkan');
+                });
+            }], 'jumlah');
 
         // Filter by category
         if ($request->filled('kategori') && $request->kategori !== 'all') {
@@ -52,8 +57,7 @@ class ProductController extends Controller
                 'harga' => (float) $p->harga,
                 'foto' => $p->foto,
                 'status_tersedia' => (bool) $p->status_tersedia,
-                'rating' => 4.9,
-                'sold_count' => 85,
+                'sold_count' => (int) ($p->sold_count ?? 0),
             ];
         });
 
@@ -62,7 +66,13 @@ class ProductController extends Controller
 
     public function show(int|string $id)
     {
-        $p = Product::with('category')->findOrFail($id);
+        $p = Product::with('category')
+            ->withSum(['orderItems as sold_count' => function ($q) {
+                $q->whereHas('order', function ($oq) {
+                    $oq->where('status_pesanan', '!=', 'dibatalkan');
+                });
+            }], 'jumlah')
+            ->findOrFail($id);
 
         return response()->json([
             'data' => [
@@ -74,8 +84,7 @@ class ProductController extends Controller
                 'harga' => (float) $p->harga,
                 'foto' => $p->foto,
                 'status_tersedia' => (bool) $p->status_tersedia,
-                'rating' => 4.9,
-                'sold_count' => 85,
+                'sold_count' => (int) ($p->sold_count ?? 0),
             ]
         ]);
     }

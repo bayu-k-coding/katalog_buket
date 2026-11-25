@@ -6,35 +6,55 @@ import {
   Heart,
   Truck,
   ShieldCheck,
-  Clock,
   Gift,
-  CheckCircle2,
   ChevronRight
 } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
+import ProductCard, { formatRupiah } from '../components/ProductCard';
 import { productService, categoryService } from '../services/api';
-import { mockProducts, mockCategories } from '../services/mockData';
 import { useShopProfile } from '../context/ShopProfileContext';
 
 const HomePage = () => {
   const { shopProfile } = useShopProfile();
-  const [featuredProducts, setFeaturedProducts] = useState(mockProducts.slice(0, 4));
-  const [categories, setCategories] = useState(mockCategories);
+  const [allProducts, setAllProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load products
-    productService.getAll({ featured: true }).then((res) => {
-      if (res?.data && res.data.length > 0) {
-        setFeaturedProducts(res.data.slice(0, 4));
+    let active = true;
+    Promise.allSettled([productService.getAll(), categoryService.getAll()]).then(
+      ([prodRes, catRes]) => {
+        if (!active) return;
+
+        if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value?.data)) {
+          const list = prodRes.value.data;
+          setAllProducts(list);
+          const available = list.filter((p) => p.status_tersedia);
+          const displayPool = available.length > 0 ? available : list;
+          setFeaturedProducts(displayPool.slice(0, 4));
+        }
+
+        if (catRes.status === 'fulfilled' && Array.isArray(catRes.value?.data)) {
+          setCategories(catRes.value.data);
+        }
+
+        setIsLoading(false);
       }
-    });
-    // Load categories
-    categoryService.getAll().then((res) => {
-      if (res?.data && res.data.length > 0) {
-        setCategories(res.data);
-      }
-    });
+    );
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const heroProduct = allProducts.find((p) => p.status_tersedia) || allProducts[0] || null;
+  const customCategory = categories.find((c) =>
+    c.nama_kategori?.toLowerCase().includes('custom')
+  );
+  const waRaw = (shopProfile.no_kontak || shopProfile.whatsapp || '081234567890').replace(/\D/g, '');
+  const waNumber = waRaw.startsWith('0') ? '62' + waRaw.slice(1) : waRaw;
+  const waMessage = encodeURIComponent(
+    `Halo ${shopProfile.nama_toko || 'Intan Buket'}, saya ingin konsultasi pesan buket custom`
+  );
 
   return (
     <div className="space-y-20 pb-20">
@@ -78,12 +98,16 @@ const HomePage = () => {
               {/* Trust Badges */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-borderMuted/30">
                 <div>
-                  <div className="font-playfair text-2xl font-bold text-primary">500+</div>
-                  <div className="text-xs text-textMuted">Buket Terkirim</div>
+                  <div className="font-playfair text-2xl font-bold text-primary">
+                    {isLoading ? '...' : allProducts.length}
+                  </div>
+                  <div className="text-xs text-textMuted">Pilihan Buket</div>
                 </div>
                 <div>
-                  <div className="font-playfair text-2xl font-bold text-secondary">4.9 / 5</div>
-                  <div className="text-xs text-textMuted">Kepuasan Pelanggan</div>
+                  <div className="font-playfair text-2xl font-bold text-secondary">
+                    {isLoading ? '...' : categories.length}
+                  </div>
+                  <div className="text-xs text-textMuted">Kategori Pilihan</div>
                 </div>
                 <div>
                   <div className="font-playfair text-2xl font-bold text-primary">100%</div>
@@ -100,25 +124,58 @@ const HomePage = () => {
                 <div className="absolute -bottom-6 -left-6 w-72 h-72 bg-secondary/10 rounded-full blur-3xl" />
 
                 <div className="relative bg-white p-3 rounded-3xl shadow-elevated border border-borderMuted/40 overflow-hidden group">
-                  <img
-                    src="https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=900&q=80"
-                    alt="Buket Wisuda Intan Buket"
-                    className="w-full h-[400px] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-700"
-                  />
-                  {/* Floating badge */}
-                  <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-borderMuted/30 shadow-lg flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-textMuted font-medium">Best Seller Wisuda</p>
-                      <h4 className="font-playfair font-bold text-gray-900 text-sm">Buket Wisuda Mawar & Teddy</h4>
-                      <p className="text-primary font-bold text-sm">Rp 150.000</p>
-                    </div>
-                    <Link
-                      to="/katalog/1"
-                      className="px-3.5 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors"
-                    >
-                      Pesan
-                    </Link>
-                  </div>
+                  {isLoading ? (
+                    <div className="w-full h-[400px] rounded-2xl bg-[#EDE9E4] animate-pulse" />
+                  ) : (
+                    <>
+                      {heroProduct?.foto ? (
+                        <img
+                          src={heroProduct.foto}
+                          alt={heroProduct.nama_produk || shopProfile.nama_toko || 'Koleksi Buket'}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            if (e.currentTarget.nextElementSibling) {
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }
+                          }}
+                          className="w-full h-[400px] object-cover rounded-2xl group-hover:scale-105 transition-transform duration-700"
+                        />
+                      ) : null}
+                      <div
+                        style={{ display: heroProduct?.foto ? 'none' : 'flex' }}
+                        className="w-full h-[400px] rounded-2xl bg-[#EDE9E4] flex-col items-center justify-center text-textMuted gap-3"
+                      >
+                        <div className="w-16 h-16 rounded-2xl bg-white/80 border border-borderMuted/40 flex items-center justify-center text-primary shadow-sm">
+                          <Gift className="w-8 h-8" />
+                        </div>
+                        <span className="text-xs font-semibold tracking-wider uppercase">
+                          {heroProduct?.nama_kategori || 'Koleksi Buket'}
+                        </span>
+                      </div>
+                      {/* Floating badge */}
+                      {heroProduct && (
+                        <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-borderMuted/30 shadow-lg flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs text-textMuted font-medium truncate">
+                              {heroProduct.nama_kategori || 'Produk Pilihan'}
+                            </p>
+                            <h4 className="font-playfair font-bold text-gray-900 text-sm truncate">
+                              {heroProduct.nama_produk}
+                            </h4>
+                            <p className="text-primary font-bold text-sm">
+                              {formatRupiah(heroProduct.harga)}
+                            </p>
+                          </div>
+                          <Link
+                            to={`/katalog/${heroProduct.id_produk}`}
+                            className="px-3.5 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-primary-hover transition-colors shrink-0"
+                          >
+                            Pesan
+                          </Link>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -189,23 +246,33 @@ const HomePage = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categories.map((cat, idx) => (
-            <Link
-              key={cat.id_kategori}
-              to={`/katalog?kategori=${cat.id_kategori}`}
-              className="group bg-white p-5 rounded-2xl border border-borderMuted/30 hover:border-primary/50 text-center shadow-soft hover:shadow-elevated transition-all flex flex-col items-center justify-center"
-            >
-              <div className="w-14 h-14 rounded-full bg-[#F5F3F0] group-hover:bg-primary-subtle group-hover:text-primary flex items-center justify-center text-textMuted mb-3 transition-colors">
-                {/* <Sparkles className="w-6 h-6" /> */}
-              </div>
-              <h4 className="font-playfair font-bold text-sm text-gray-900 group-hover:text-primary transition-colors">
-                {cat.nama_kategori}
-              </h4>
-              <p className="text-[11px] text-textMuted mt-1 line-clamp-1">
-                {cat.deskripsi}
-              </p>
-            </Link>
-          ))}
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-5 rounded-2xl border border-borderMuted/30 h-36 animate-pulse flex flex-col items-center justify-center gap-3"
+                >
+                  <div className="w-14 h-14 rounded-full bg-[#EDE9E4]" />
+                  <div className="h-3 w-20 rounded bg-[#EDE9E4]" />
+                </div>
+              ))
+            : categories.map((cat) => (
+                <Link
+                  key={cat.id_kategori}
+                  to={`/katalog?kategori=${cat.id_kategori}`}
+                  className="group bg-white p-5 rounded-2xl border border-borderMuted/30 hover:border-primary/50 text-center shadow-soft hover:shadow-elevated transition-all flex flex-col items-center justify-center"
+                >
+                  <div className="w-14 h-14 rounded-full bg-[#F5F3F0] group-hover:bg-primary-subtle group-hover:text-primary flex items-center justify-center text-textMuted mb-3 transition-colors">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <h4 className="font-playfair font-bold text-sm text-gray-900 group-hover:text-primary transition-colors">
+                    {cat.nama_kategori}
+                  </h4>
+                  <p className="text-[11px] text-textMuted mt-1 line-clamp-1">
+                    {cat.deskripsi}
+                  </p>
+                </Link>
+              ))}
         </div>
       </section>
 
@@ -227,9 +294,23 @@ const HomePage = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id_produk} product={product} />
-          ))}
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl border border-borderMuted/40 overflow-hidden animate-pulse"
+                >
+                  <div className="aspect-[4/3] bg-[#EDE9E4]" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-3 w-20 rounded bg-[#EDE9E4]" />
+                    <div className="h-4 w-3/4 rounded bg-[#EDE9E4]" />
+                    <div className="h-5 w-1/2 rounded bg-[#EDE9E4]" />
+                  </div>
+                </div>
+              ))
+            : featuredProducts.map((product) => (
+                <ProductCard key={product.id_produk} product={product} />
+              ))}
         </div>
       </section>
 
@@ -251,7 +332,7 @@ const HomePage = () => {
             </p>
             <div className="pt-2 flex flex-wrap gap-4">
               <a
-                href={`https://wa.me/${(shopProfile.no_kontak || shopProfile.whatsapp || '081234567890').replace(/\D/g, '')}?text=Halo%20Intan%20Buket,%20saya%20ingin%20konsultasi%20pesan%20buket%20custom`}
+                href={`https://wa.me/${waNumber}?text=${waMessage}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-bold text-sm rounded-xl hover:bg-gray-100 shadow-md transition-all active:scale-95"
@@ -260,7 +341,7 @@ const HomePage = () => {
                 <ArrowRight className="w-4 h-4" />
               </a>
               <Link
-                to="/katalog?kategori=4"
+                to={customCategory ? `/katalog?kategori=${customCategory.id_kategori}` : '/katalog'}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary-hover text-white font-semibold text-sm rounded-xl border border-white/30 hover:bg-white/10 transition-colors"
               >
                 <span>Lihat Contoh Custom</span>

@@ -39,6 +39,7 @@ Route::get('/shop-profile', [ShopProfileController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/orders/{id}/upload-proof', [OrderController::class, 'uploadProof']);
+Route::patch('/orders/{id}/cancel', [OrderController::class, 'cancelByCustomer']);
 
 // Payment Gateway & Midtrans Snap
 Route::get('/payment-gateway/{orderId}', [PaymentGatewayController::class, 'show']);

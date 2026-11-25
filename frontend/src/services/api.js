@@ -178,6 +178,10 @@ export const orderService = {
   uploadProof: async (id, formDataOrData) => {
     const res = await apiClient.post(`/orders/${id}/upload-proof`, formDataOrData);
     return res.data;
+  },
+  cancelOrder: async (id) => {
+    const res = await apiClient.patch(`/orders/${id}/cancel`);
+    return res.data;
   }
 };
 
