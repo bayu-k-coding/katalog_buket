@@ -172,7 +172,7 @@ const ProfilePage = () => {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800">
             <ShieldCheck className="w-3 h-3 text-purple-700" />
-            <span>Superadmin</span>
+            <span>Pemilik Toko</span>
           </span>
         );
       case 'admin':
@@ -340,7 +340,7 @@ const ProfilePage = () => {
                       value={formData.kode_pos}
                       onChange={(e) => setFormData({ ...formData, kode_pos: e.target.value })}
                       placeholder="Contoh: 63126"
-                      maxLength={10}
+                      maxLength={5}
                       className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-borderMuted/60 text-xs text-gray-900 focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>

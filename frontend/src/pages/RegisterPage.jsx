@@ -68,7 +68,7 @@ const RegisterPage = () => {
       <div className="min-h-[85vh] flex items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-3 text-primary">
           <Loader2 className="w-8 h-8 animate-spin" />
-          <span className="text-xs font-semibold text-textMuted">Memverifikasi sesi...</span>
+          <span className="text-xs font-semibold text-textMuted">Memuat halaman...</span>
         </div>
       </div>
     );

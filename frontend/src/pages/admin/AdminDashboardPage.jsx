@@ -63,7 +63,7 @@ const AdminDashboardPage = () => {
           <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
           <div className="text-xs">
             <strong className="block font-bold">Akses Ditolak!</strong>
-            Halaman Manajemen Pengguna hanya dapat diakses oleh akun dengan wewenang <strong>Superadmin (Owner)</strong>.
+            Halaman Manajemen Pengguna hanya dapat diakses oleh akun <strong>Pemilik Toko</strong>.
           </div>
         </div>
       )}
@@ -72,10 +72,10 @@ const AdminDashboardPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-playfair text-3xl font-bold text-gray-900">
-            Dashboard Backoffice
+            Dashboard Admin
           </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Ringkasan performa toko, transaksi pesanan buket, dan ketersediaan katalog produk
+            Ringkasan transaksi dan katalog toko
           </p>
         </div>
 
@@ -106,29 +106,26 @@ const AdminDashboardPage = () => {
                 </div>
               </div>
               <div className="font-sans font-bold text-2xl text-gray-900">{formatRupiah(totalRevenue)}</div>
-              <span className="text-[11px] text-emerald-600 font-medium">Transaksi lunas terverifikasi</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-borderMuted/30 shadow-soft">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">Pesanan Perlu Diproses</span>
+                <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">Pesanan Diproses</span>
                 <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
               </div>
               <div className="font-sans font-bold text-2xl text-gray-900">{pendingOrders.length} Pesanan</div>
-              <span className="text-[11px] text-amber-600 font-medium">Perlu dirangkai / verifikasi</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-borderMuted/30 shadow-soft">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">Total Katalog Buket</span>
+                <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">Total Produk</span>
                 <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                   <Package className="w-4 h-4" />
                 </div>
               </div>
               <div className="font-sans font-bold text-2xl text-gray-900">{products.length} Buket</div>
-              <span className="text-[11px] text-blue-600 font-medium">Terdaftar di katalog</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-borderMuted/30 shadow-soft">
@@ -139,7 +136,6 @@ const AdminDashboardPage = () => {
                 </div>
               </div>
               <div className="font-sans font-bold text-2xl text-amber-700">{unavailableProducts.length} Produk</div>
-              <span className="text-[11px] text-amber-700 font-medium">Sedang tidak tersedia di etalase</span>
             </div>
           </div>
 

@@ -46,17 +46,19 @@ class UserController extends Controller
         $this->authorizeSuperadmin($request);
 
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:100',
-            'email' => 'required|email|max:100|unique:users,email',
+            'nama_lengkap' => 'required|string|max:60',
+            'email' => 'required|email|max:60|unique:users,email',
             'password' => 'required|string|min:6',
-            'no_telepon' => 'nullable|string|max:20',
+            'no_telepon' => 'nullable|string|max:16',
             'role' => 'required|in:superadmin,admin',
         ], [
             'nama_lengkap.required' => 'Nama lengkap pengguna wajib diisi.',
-            'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 60 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Alamat email maksimal 60 karakter.',
             'email.unique' => 'Alamat email ini sudah terdaftar sebagai pengguna lain.',
+            'no_telepon.max' => 'Nomor telepon maksimal 16 digit.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
             'role.required' => 'Peran pengguna (role) wajib dipilih.',
@@ -94,17 +96,20 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:100',
-            'email' => 'required|email|max:100|unique:users,email,' . $id . ',id_user',
-            'no_telepon' => 'nullable|string|max:20',
+            'nama_lengkap' => 'required|string|max:60',
+            'email' => 'required|email|max:60|unique:users,email,' . $id . ',id_user',
+            'no_telepon' => 'nullable|string|max:16',
             'role' => 'required|in:superadmin,admin',
             'password' => 'nullable|string|min:6',
             'status_aktif' => 'nullable|boolean',
         ], [
             'nama_lengkap.required' => 'Nama lengkap pengguna wajib diisi.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 60 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Alamat email maksimal 60 karakter.',
             'email.unique' => 'Alamat email ini sudah digunakan pengguna lain.',
+            'no_telepon.max' => 'Nomor telepon maksimal 16 digit.',
             'password.min' => 'Kata sandi baru minimal 6 karakter.',
             'role.required' => 'Peran pengguna wajib dipilih.',
             'role.in' => 'Peran pengguna harus Superadmin atau Admin Toko.',

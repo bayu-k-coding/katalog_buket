@@ -40,7 +40,7 @@ export const SuperAdminRoute = () => {
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-3 text-primary">
           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-semibold text-textMuted">Memverifikasi hak akses Superadmin...</span>
+          <span className="text-xs font-semibold text-textMuted">Memeriksa akses...</span>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export const CustomerRoute = () => {
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-3 text-primary">
           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-semibold text-textMuted">Memverifikasi akun...</span>
+          <span className="text-xs font-semibold text-textMuted">Memuat akun...</span>
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ export const GuestRoute = () => {
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="flex flex-col items-center gap-3 text-primary">
           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-semibold text-textMuted">Memverifikasi sesi...</span>
+          <span className="text-xs font-semibold text-textMuted">Memuat halaman...</span>
         </div>
       </div>
     );

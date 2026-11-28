@@ -38,7 +38,7 @@ const ResetPasswordPage = () => {
     setErrorMessage('');
 
     if (!token || !email) {
-      setErrorMessage('Tautan reset kata sandi tidak valid. Pastikan token dan email lengkap.');
+      setErrorMessage('Tautan atur ulang kata sandi tidak valid atau tidak lengkap.');
       return;
     }
 
@@ -119,7 +119,7 @@ const ResetPasswordPage = () => {
             <div className="flex-1">
               <p className="font-bold">Tautan Tidak Lengkap</p>
               <p className="mt-0.5">
-                Tautan yang Anda buka tidak memiliki parameter token atau email yang valid. Silakan lakukan permohonan tautan baru.
+                Tautan yang Anda buka sudah tidak lengkap atau kedaluwarsa. Silakan minta tautan baru.
               </p>
               <Link to="/forgot-password" className="font-bold text-primary underline mt-2 inline-block">
                 Minta Tautan Reset Baru &rarr;

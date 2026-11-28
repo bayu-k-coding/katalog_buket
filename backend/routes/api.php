@@ -62,14 +62,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-orders', [OrderController::class, 'customerOrders']);
 });
 
-// Fallback direct order endpoints for dev/preview testing
-Route::get('/my-orders-preview', [OrderController::class, 'index']);
-
-
 // ==========================================
-// 3. Admin & Superadmin Backoffice
+// 3. Admin & Superadmin Backoffice (Wajib Login Admin)
 // ==========================================
-Route::prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/stats', [DashboardController::class, 'stats']);
 
     // Manajemen Pesanan
@@ -92,31 +88,13 @@ Route::prefix('admin')->group(function () {
 
     // Manajemen Profil Toko
     Route::put('/shop-profile', [ShopProfileController::class, 'update']);
+
+    // Manajemen Pengguna & Metode Pembayaran (Superadmin Saja — dicek di controller)
+    Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
+    Route::apiResource('/users', UserController::class);
+
+    Route::get('/payment-methods', [PaymentMethodController::class, 'adminIndex']);
+    Route::post('/payment-methods/{id}', [PaymentMethodController::class, 'update']);
+    Route::put('/payment-methods/{id}', [PaymentMethodController::class, 'update']);
+    Route::patch('/payment-methods/{id}/toggle-status', [PaymentMethodController::class, 'toggleStatus']);
 });
-
-// ==========================================
-// 4. Manajemen Pengguna & Metode Pembayaran (Superadmin Saja)
-// ==========================================
-Route::middleware('auth:sanctum')->group(function () {
-    Route::patch('/admin/users/{id}/toggle-status', [UserController::class, 'toggleStatus']);
-    Route::apiResource('admin/users', UserController::class);
-
-    // Superadmin: Manajemen Metode Pembayaran & Rekening
-    Route::get('/admin/payment-methods', [PaymentMethodController::class, 'adminIndex']);
-    Route::post('/admin/payment-methods/{id}', [PaymentMethodController::class, 'update']);
-    Route::put('/admin/payment-methods/{id}', [PaymentMethodController::class, 'update']);
-    Route::patch('/admin/payment-methods/{id}/toggle-status', [PaymentMethodController::class, 'toggleStatus']);
-});
-
-// Also expose unscoped versions for flexible frontend direct calls
-Route::get('/orders', [OrderController::class, 'index']);
-Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
-Route::patch('/orders/{id}/payment', [OrderController::class, 'verifyPayment']);
-Route::post('/products', [ProductController::class, 'store']);
-Route::post('/products/{id}', [ProductController::class, 'update']);
-Route::put('/products/{id}', [ProductController::class, 'update']);
-Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-Route::post('/categories', [CategoryController::class, 'store']);
-Route::put('/categories/{id}', [CategoryController::class, 'update']);
-Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-Route::put('/shop-profile', [ShopProfileController::class, 'update']);

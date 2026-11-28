@@ -31,18 +31,19 @@ class ShopProfileController extends Controller
         $profile = ShopProfile::firstOrCreate(['id_toko' => 1]);
 
         $validated = $request->validate([
-            'nama_toko' => 'required|string|max:100',
+            'nama_toko' => 'required|string|max:35',
             'deskripsi' => 'nullable|string',
-            'alamat' => 'nullable|string|max:60',
-            'jam_buka' => 'nullable|string|max:11',
+            'alamat' => 'nullable|string|max:100',
+            'jam_buka' => 'nullable|string|max:20',
             'no_kontak' => 'required|string|max:16',
             'email_toko' => 'nullable|string|email|max:100',
         ], [
             'nama_toko.required' => 'Nama butik/toko wajib diisi.',
+            'nama_toko.max' => 'Nama butik/toko maksimal 35 karakter.',
             'no_kontak.required' => 'Nomor kontak/WhatsApp resmi wajib diisi.',
             'no_kontak.max' => 'Nomor kontak maksimal 16 digit.',
-            'alamat.max' => 'Alamat toko maksimal 60 karakter.',
-            'jam_buka.max' => 'Format jam buka maksimal 11 karakter (contoh: 08.00-21.00).',
+            'alamat.max' => 'Alamat toko maksimal 100 karakter.',
+            'jam_buka.max' => 'Jam buka maksimal 20 karakter.',
             'email_toko.email' => 'Format alamat email toko tidak valid.',
         ]);
 

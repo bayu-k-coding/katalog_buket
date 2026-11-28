@@ -132,31 +132,20 @@ export const orderService = {
     return res.data;
   },
   getAll: async () => {
-    try {
-      const res = await apiClient.get('/admin/orders');
-      return res.data;
-    } catch (e) {
-      try {
-        const res = await apiClient.get('/orders');
-        return res.data;
-      } catch (err) {
-        console.warn('API /orders unavailable, using fallback:', err);
-        return { data: mockOrders };
-      }
-    }
+    const res = await apiClient.get('/admin/orders');
+    return res.data;
   },
   getMyOrders: async () => {
     try {
       const token = localStorage.getItem('token');
-      if (token) {
-        const res = await apiClient.get('/my-orders');
-        return res.data;
+      if (!token) {
+        return { data: [] };
       }
-      const res = await apiClient.get('/my-orders-preview');
+      const res = await apiClient.get('/my-orders');
       return res.data;
     } catch (e) {
-      console.warn('API /my-orders unavailable, using fallback:', e);
-      return { data: mockOrders };
+      console.warn('API /my-orders unavailable:', e);
+      return { data: [] };
     }
   },
   getById: async (id) => {

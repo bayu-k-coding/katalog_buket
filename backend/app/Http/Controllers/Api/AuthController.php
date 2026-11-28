@@ -14,19 +14,24 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:pelanggan,email',
+            'nama_lengkap' => 'required|string|max:60',
+            'email' => 'required|string|email|max:60|unique:pelanggan,email',
             'password' => 'required|string|min:6|confirmed',
-            'no_telepon' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string|max:500',
-            'kota' => 'nullable|string|max:60',
-            'kode_pos' => 'nullable|string|max:10',
+            'no_telepon' => 'nullable|string|max:16',
+            'alamat' => 'nullable|string|max:100',
+            'kota' => 'nullable|string|max:30',
+            'kode_pos' => 'nullable|string|max:5',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 60 karakter.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format alamat email tidak valid.',
+            'email.max' => 'Alamat email maksimal 60 karakter.',
             'email.unique' => 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda.',
+            'no_telepon.max' => 'Nomor telepon maksimal 16 digit.',
+            'alamat.max' => 'Alamat maksimal 100 karakter.',
+            'kota.max' => 'Nama kota maksimal 30 karakter.',
+            'kode_pos.max' => 'Kode pos maksimal 5 digit.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
@@ -107,17 +112,18 @@ class AuthController extends Controller
 
         if ($authUser instanceof Pelanggan) {
             $validated = $request->validate([
-                'nama_lengkap' => 'required|string|max:100',
-                'no_telepon' => 'nullable|string|max:20',
-                'alamat' => 'nullable|string|max:500',
-                'kota' => 'nullable|string|max:60',
-                'kode_pos' => 'nullable|string|max:10',
+                'nama_lengkap' => 'required|string|max:60',
+                'no_telepon' => 'nullable|string|max:16',
+                'alamat' => 'nullable|string|max:100',
+                'kota' => 'nullable|string|max:30',
+                'kode_pos' => 'nullable|string|max:5',
             ], [
                 'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-                'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
-                'no_telepon.max' => 'Nomor telepon maksimal 20 digit.',
-                'kota.max' => 'Nama kota maksimal 60 karakter.',
-                'kode_pos.max' => 'Kode pos maksimal 10 karakter.',
+                'nama_lengkap.max' => 'Nama lengkap maksimal 60 karakter.',
+                'no_telepon.max' => 'Nomor telepon maksimal 16 digit.',
+                'alamat.max' => 'Alamat maksimal 100 karakter.',
+                'kota.max' => 'Nama kota maksimal 30 karakter.',
+                'kode_pos.max' => 'Kode pos maksimal 5 digit.',
             ]);
 
             $updateData = [
@@ -138,12 +144,12 @@ class AuthController extends Controller
 
         // Jika model User (Admin / Superadmin)
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string|max:100',
-            'no_telepon' => 'nullable|string|max:20',
+            'nama_lengkap' => 'required|string|max:60',
+            'no_telepon' => 'nullable|string|max:16',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-            'nama_lengkap.max' => 'Nama lengkap maksimal 100 karakter.',
-            'no_telepon.max' => 'Nomor telepon maksimal 20 digit.',
+            'nama_lengkap.max' => 'Nama lengkap maksimal 60 karakter.',
+            'no_telepon.max' => 'Nomor telepon maksimal 16 digit.',
         ]);
 
         $updateData = [

@@ -64,7 +64,7 @@ const AdminUsersPage = () => {
       setUsers(res.data || []);
     } catch (err) {
       console.error('Gagal mengambil daftar pengguna:', err);
-      const msg = err.response?.data?.message || 'Gagal memuat data pengguna dari server. Pastikan server backend aktif.';
+      const msg = err.response?.data?.message || 'Gagal memuat data pengguna. Silakan coba muat ulang.';
       setErrorMsg(msg);
     } finally {
       setIsLoading(false);
@@ -223,7 +223,7 @@ const AdminUsersPage = () => {
     }
 
     if (deleteConfirmUser.role === 'superadmin') {
-      alert('Akun Superadmin tidak dapat dihapus untuk menjaga keamanan sistem.');
+      alert('Akun Pemilik Toko tidak dapat dihapus.');
       setDeleteConfirmUser(null);
       return;
     }
@@ -232,11 +232,11 @@ const AdminUsersPage = () => {
     try {
       const res = await userService.delete(deleteConfirmUser.id_user);
       setUsers((prev) => prev.filter((u) => u.id_user !== deleteConfirmUser.id_user));
-      setSuccessMsg(res.message || 'Akun pengguna berhasil dihapus dari sistem.');
+      setSuccessMsg(res.message || 'Akun pengguna berhasil dihapus.');
       setDeleteConfirmUser(null);
     } catch (err) {
       console.error('Gagal menghapus pengguna:', err);
-      const msg = err.response?.data?.message || 'Gagal menghapus pengguna dari database.';
+      const msg = err.response?.data?.message || 'Gagal menghapus pengguna.';
       alert(msg);
     } finally {
       setIsDeleting(false);
@@ -304,17 +304,11 @@ const AdminUsersPage = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-playfair text-3xl font-bold text-gray-900">
-              Manajemen Pengguna
-            </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-3 h-3 text-purple-700" />
-              <span>Superadmin Only</span>
-            </span>
-          </div>
+          <h1 className="font-playfair text-3xl font-bold text-gray-900">
+            Manajemen Pengguna
+          </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Kelola hak akses akun pemilik toko (Superadmin) dan staf operasional/kasir (Admin Toko)
+            Kelola akun Pemilik Toko dan Admin
           </p>
         </div>
 
@@ -379,7 +373,7 @@ const AdminUsersPage = () => {
                 : 'text-textMuted hover:text-purple-700'
             }`}
           >
-            Superadmin ({superadminCount})
+            Pemilik Toko ({superadminCount})
           </button>
           <button
             onClick={() => setRoleFilter('admin')}
@@ -389,7 +383,7 @@ const AdminUsersPage = () => {
                 : 'text-textMuted hover:text-blue-700'
             }`}
           >
-            Admin Toko ({adminCount})
+            Admin ({adminCount})
           </button>
         </div>
       </div>
@@ -399,7 +393,7 @@ const AdminUsersPage = () => {
         {isLoading ? (
           <div className="p-16 flex flex-col items-center justify-center gap-3 text-primary">
             <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-semibold text-textMuted">Memuat data pengguna dari database...</span>
+            <span className="text-xs font-semibold text-textMuted">Memuat data pengguna...</span>
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="p-16 text-center space-y-3">
@@ -462,15 +456,12 @@ const AdminUsersPage = () => {
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-gray-900">{u.nama_lengkap}</span>
                               {isCurrent && (
-                                <span className="inline-flex items-center gap-0.5 px-2 py-0.2 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
+                                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
                                   <UserCheck className="w-3 h-3 text-amber-700" />
-                                  <span>Akun Anda</span>
+                                  <span>Anda</span>
                                 </span>
                               )}
                             </div>
-                            <span className="text-[11px] text-textMuted block">
-                              ID Pengguna: #{u.id_user}
-                            </span>
                           </div>
                         </div>
                       </td>
@@ -503,7 +494,7 @@ const AdminUsersPage = () => {
                           }`}
                         >
                           <ShieldCheck className="w-3 h-3" />
-                          <span>{isSuper ? 'Superadmin' : 'Admin Toko'}</span>
+                          <span>{isSuper ? 'Pemilik Toko' : 'Admin'}</span>
                         </span>
                       </td>
 
@@ -571,7 +562,7 @@ const AdminUsersPage = () => {
                             </span>
                           ) : isSuper ? (
                             <span
-                              title="Akun Superadmin dilindungi dan tidak dapat dihapus"
+                              title="Akun Pemilik Toko tidak dapat dihapus"
                               className="p-1.5 text-gray-300 cursor-not-allowed"
                             >
                               <Lock className="w-4 h-4" />
@@ -602,16 +593,9 @@ const AdminUsersPage = () => {
           <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 space-y-6 shadow-elevated animate-scaleIn max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <div>
-                <h3 className="font-playfair font-bold text-lg text-gray-900">
-                  {editingUser ? 'Ubah Data Pengguna' : 'Tambah Pengguna Baru'}
-                </h3>
-                <p className="text-[11px] text-textMuted mt-0.5">
-                  {editingUser
-                    ? `Perbarui informasi akun untuk ${editingUser.nama_lengkap}`
-                    : 'Daftarkan akun staf kasir atau Superadmin baru'}
-                </p>
-              </div>
+              <h3 className="font-playfair font-bold text-lg text-gray-900">
+                {editingUser ? 'Ubah Data Pengguna' : 'Tambah Pengguna Baru'}
+              </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
@@ -707,10 +691,10 @@ const AdminUsersPage = () => {
                   <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-900 space-y-1">
                     <div className="font-bold flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-purple-700" />
-                      <span>Superadmin (Owner)</span>
+                      <span>Pemilik Toko</span>
                     </div>
                     <p className="text-[10px] text-purple-700">
-                      Anda tidak dapat menurunkan hak akses akun Anda sendiri untuk menjaga kepemilikan sistem.
+                      Anda tidak dapat mengubah peran akun Anda sendiri.
                     </p>
                   </div>
                 ) : (
@@ -719,8 +703,8 @@ const AdminUsersPage = () => {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl border border-borderMuted/60 text-xs focus:outline-none focus:border-primary bg-white"
                   >
-                    <option value="admin">Admin Toko / Kasir Operasional</option>
-                    <option value="superadmin">Superadmin / Pemilik Toko (Full Access)</option>
+                    <option value="admin">Admin / Kasir</option>
+                    <option value="superadmin">Pemilik Toko (Akses Penuh)</option>
                   </select>
                 )}
                 {formErrors.role && (
@@ -736,7 +720,7 @@ const AdminUsersPage = () => {
                   <div>
                     <span className="block text-xs font-semibold text-gray-800">Status Akun Aktif</span>
                     <span className="text-[10px] text-textMuted">
-                      Akun nonaktif tidak akan dapat login ke backoffice
+                      Akun nonaktif tidak dapat masuk ke halaman admin
                     </span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">

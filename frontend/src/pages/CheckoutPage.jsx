@@ -259,9 +259,6 @@ const CheckoutPage = () => {
               <h3 className="font-playfair font-bold text-lg text-gray-900">
                 2. Pilih Metode Pembayaran
               </h3>
-              <p className="text-[11px] text-textMuted mt-0.5">
-                Pilih opsi pembayaran: Bayar Online Otomatis atau Bayar di Tempat (COD)
-              </p>
             </div>
 
             {/* List 2 Opsi Bersih */}
@@ -276,7 +273,7 @@ const CheckoutPage = () => {
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                         <CreditCard className="w-4 h-4" />
@@ -295,23 +292,9 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <p className="text-xs text-textMuted leading-relaxed mb-3">
-                    Scan QRIS (GoPay, ShopeePay, DANA) & Transfer Bank (BRI, BCA).
+                  <p className="text-xs text-textMuted leading-relaxed">
+                    QRIS (GoPay, ShopeePay, DANA) atau Virtual Account BRI / BCA.
                   </p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-white border border-gray-200 rounded-md text-gray-700">QRIS</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-white border border-gray-200 rounded-md text-gray-700">GoPay</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-white border border-gray-200 rounded-md text-gray-700">ShopeePay</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-white border border-gray-200 rounded-md text-gray-700">DANA</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-white border border-gray-200 rounded-md text-gray-700">Bank BRI</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-white border border-gray-200 rounded-md text-gray-700">Bank BCA</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Verifikasi Otomatis Tanpa Kirim Bukti</span>
                 </div>
               </label>
 
@@ -324,7 +307,7 @@ const CheckoutPage = () => {
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
                       <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
                         <Truck className="w-4 h-4" />
@@ -343,52 +326,12 @@ const CheckoutPage = () => {
                     />
                   </div>
 
-                  <p className="text-xs text-textMuted leading-relaxed mb-3">
-                    Bayar tunai kepada kurir saat pesanan tiba di lokasi, atau bayar langsung di butik saat pengambilan buket.
+                  <p className="text-xs text-textMuted leading-relaxed">
+                    Bayar tunai langsung di butik atau saat kurir mengantar pesanan.
                   </p>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md">Tunai / Cash</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-gray-50 text-gray-600 border border-gray-200 rounded-md">Ambil di Butik</span>
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-gray-50 text-gray-600 border border-gray-200 rounded-md">Antar Kurir</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-[11px] font-semibold text-gray-600">
-                  <Banknote className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Tanpa Perlu Transfer Terlebih Dahulu</span>
                 </div>
               </label>
 
-            </div>
-
-            {/* Penjelasan Singkat Alur */}
-            <div className="p-4 bg-[#FBF9F6] rounded-2xl border border-primary/20 space-y-2 animate-fadeIn text-xs text-gray-700">
-              {isOnline ? (
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900">Alur Pembayaran Online Praktis & Otomatis:</p>
-                    <p className="text-[11px] text-textMuted mt-0.5 leading-relaxed">
-                      Tersedia opsi <strong>Scan QRIS (GoPay, ShopeePay, DANA)</strong> dan <strong>Transfer Bank (BRI, BCA)</strong>. Setelah mengklik tombol di bawah, jendela pembayaran resmi akan langsung terbuka. Anda cukup menyelesaikan transaksi di HP, dan pesanan akan <strong>langsung terkonfirmasi lunas detik itu juga</strong> tanpa perlu konfirmasi manual.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
-                    <Truck className="w-4 h-4 text-emerald-700" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900">Alur Pesanan COD (Bayar di Tempat):</p>
-                    <p className="text-[11px] text-textMuted mt-0.5 leading-relaxed">
-                      Pesanan buket Anda langsung masuk ke antrean perakitan florist kami. Anda cukup menyiapkan uang tunai pas saat kurir mengantarkan buket ke lokasi atau saat Anda mengambil pesanan di butik kami.
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
           </div>
@@ -459,7 +402,7 @@ const CheckoutPage = () => {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Memproses Pesanan ke Database...</span>
+                <span>Memproses Pesanan...</span>
               </>
             ) : (
               <>

@@ -292,7 +292,7 @@ const OrdersPage = () => {
                         className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover shadow-sm transition-all flex items-center gap-1.5"
                       >
                         <CreditCard className="w-4 h-4" />
-                        <span>Bayar via Payment Gateway</span>
+                        <span>Bayar Sekarang</span>
                       </Link>
                     )}
 
@@ -306,7 +306,7 @@ const OrdersPage = () => {
                     {order.status_pembayaran === 'lunas' && (
                       <span className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>Lunas Terverifikasi</span>
+                        <span>Pembayaran Lunas</span>
                       </span>
                     )}
 

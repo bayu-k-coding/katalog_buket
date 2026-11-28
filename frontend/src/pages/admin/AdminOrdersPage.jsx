@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ShoppingBag,
-  Eye,
   CheckCircle2,
   Clock,
   Truck,
-  Check,
   AlertCircle,
-  FileText,
-  CreditCard,
-  ShieldCheck,
   Loader2,
   RefreshCw,
-  ExternalLink,
-  Image as ImageIcon,
   XCircle,
-  X
+  X,
+  Search,
+  FileDown
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { orderService } from '../../services/api';
-import { mockOrders } from '../../services/mockData';
+import { useShopProfile } from '../../context/ShopProfileContext';
 import { formatRupiah } from '../../components/ProductCard';
 
 const statusBadgeStyles = {
@@ -38,9 +33,11 @@ const paymentStatusStyles = {
 };
 
 const AdminOrdersPage = () => {
+  const { shopProfile } = useShopProfile();
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [successNotice, setSuccessNotice] = useState('');
@@ -58,11 +55,13 @@ const AdminOrdersPage = () => {
           const found = list.find(o => o.id_pesanan === prev.id_pesanan);
           return found || list[0];
         });
+      } else {
+        setSelectedOrder(null);
       }
     } catch (e) {
       console.warn('Gagal memuat pesanan admin:', e);
-      setOrders(mockOrders);
-      setSelectedOrder(mockOrders[0]);
+      setOrders([]);
+      setSelectedOrder(null);
     } finally {
       setIsLoading(false);
     }
@@ -73,9 +72,166 @@ const AdminOrdersPage = () => {
   }, []);
 
   const filteredOrders = orders.filter((o) => {
-    if (filterStatus === 'all') return true;
-    return o.status_pesanan === filterStatus;
+    if (filterStatus !== 'all' && o.status_pesanan !== filterStatus) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const code = (o.kode_pesanan || `#${o.id_pesanan}`).toLowerCase();
+      const name = (o.nama_penerima || '').toLowerCase();
+      const phone = (o.telp_penerima || '').toLowerCase();
+      return code.includes(q) || name.includes(q) || phone.includes(q);
+    }
+    return true;
   });
+
+  const handleDownloadPdfInvoice = (order) => {
+    if (!order) return;
+
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 16;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    const shopName = shopProfile?.nama_toko || 'Intan Buket';
+    const orderCode = order.kode_pesanan || `#${order.id_pesanan}`;
+    const orderDate = order.tanggal_pesanan
+      ? new Date(order.tanggal_pesanan).toLocaleString('id-ID')
+      : '-';
+    const payLabel = paymentStatusStyles[order.status_pembayaran]?.label || order.status_pembayaran;
+    const statusLabel = statusBadgeStyles[order.status_pesanan]?.label || order.status_pesanan;
+    const methodLabel = order.motode_pembayaran || order.metode_pembayaran || '-';
+
+    // Header Toko (Kiri) & Meta Nota (Kanan)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(140, 29, 48);
+    doc.text(shopName, margin, y);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(31, 41, 55);
+    doc.text('NOTA PESANAN', pageWidth - margin, y, { align: 'right' });
+
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(75, 85, 99);
+    const shopAddrLines = shopProfile?.alamat ? doc.splitTextToSize(shopProfile.alamat, 95) : [];
+    if (shopAddrLines.length > 0) {
+      doc.text(shopAddrLines, margin, y);
+    }
+    doc.text(orderCode, pageWidth - margin, y, { align: 'right' });
+    doc.text(orderDate, pageWidth - margin, y + 5, { align: 'right' });
+
+    y += Math.max(shopAddrLines.length * 4.5, 5);
+    if (shopProfile?.no_kontak) {
+      doc.text(`Telp/WA: ${shopProfile.no_kontak}`, margin, y);
+    }
+
+    y = Math.max(y + 6, 41);
+    doc.setDrawColor(140, 29, 48);
+    doc.setLineWidth(0.6);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    // Informasi Penerima & Pembayaran
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(31, 41, 55);
+    doc.text('Detail Penerima & Transaksi', margin, y);
+    y += 5.5;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(55, 65, 81);
+    doc.text(`Penerima          : ${order.nama_penerima || '-'} (${order.telp_penerima || '-'})`, margin, y);
+    y += 5;
+
+    const addrLines = doc.splitTextToSize(
+      `Alamat            : ${order.alamat_pengiriman || '-'}`,
+      contentWidth
+    );
+    doc.text(addrLines, margin, y);
+    y += addrLines.length * 4.8;
+
+    doc.text(`Metode Bayar      : ${methodLabel}`, margin, y);
+    y += 5;
+    doc.text(`Status Pembayaran : ${payLabel}   |   Status Pesanan: ${statusLabel}`, margin, y);
+    y += 5;
+
+    if (order.catatan) {
+      const noteLines = doc.splitTextToSize(`Catatan           : "${order.catatan}"`, contentWidth);
+      doc.text(noteLines, margin, y);
+      y += noteLines.length * 4.8;
+    }
+
+    y += 5;
+
+    // Tabel Rincian Item
+    doc.setFillColor(245, 242, 238);
+    doc.rect(margin, y, contentWidth, 8, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(55, 65, 81);
+    doc.text('PRODUK BUKET', margin + 2, y + 5.5);
+    doc.text('QTY', margin + 105, y + 5.5, { align: 'center' });
+    doc.text('HARGA', margin + 140, y + 5.5, { align: 'right' });
+    doc.text('SUBTOTAL', pageWidth - margin - 2, y + 5.5, { align: 'right' });
+    y += 11;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(31, 41, 55);
+
+    (order.items || []).forEach((item) => {
+      if (y > 265) {
+        doc.addPage();
+        y = 20;
+      }
+
+      const name = item.product?.nama_produk || item.nama_produk || 'Buket';
+      const qty = Number(item.jumlah || 1);
+      const price = formatRupiah(item.harga_satuan);
+      const subtotal = formatRupiah(item.subtotal || item.harga_satuan * qty);
+
+      const nameLines = doc.splitTextToSize(name, 92);
+      doc.text(nameLines, margin + 2, y);
+      doc.text(String(qty), margin + 105, y, { align: 'center' });
+      doc.text(price, margin + 140, y, { align: 'right' });
+      doc.text(subtotal, pageWidth - margin - 2, y, { align: 'right' });
+
+      y += Math.max(nameLines.length * 4.8, 6);
+      doc.setDrawColor(230, 230, 230);
+      doc.setLineWidth(0.2);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 5;
+    });
+
+    y += 3;
+    doc.setDrawColor(31, 41, 55);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 7;
+
+    // Total
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(31, 41, 55);
+    doc.text('Total Pembayaran', margin + 2, y);
+    doc.setTextColor(140, 29, 48);
+    doc.text(formatRupiah(order.total_harga), pageWidth - margin - 2, y, { align: 'right' });
+
+    y += 14;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128);
+    doc.text(`Terima kasih telah memesan di ${shopName}.`, pageWidth / 2, y, { align: 'center' });
+
+    const safeFileName = `Nota_${String(orderCode).replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+    doc.save(safeFileName);
+  };
 
   const handleUpdateOrderStatus = async (status) => {
     if (!selectedOrder) return;
@@ -135,7 +291,7 @@ const AdminOrdersPage = () => {
             Pesanan Masuk
           </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Pantau transaksi buket, verifikasi bukti pembayaran (BRI, BCA, QRIS, COD), dan kelola status perakitan
+            Pantau transaksi buket, kelola status pembayaran, dan proses pesanan masuk
           </p>
         </div>
 
@@ -181,6 +337,28 @@ const AdminOrdersPage = () => {
 
         {/* Orders Table */}
         <div className="lg:col-span-7 bg-white rounded-3xl border border-borderMuted/30 shadow-soft overflow-hidden">
+          <div className="p-4 border-b border-gray-100">
+            <div className="relative">
+              <Search className="w-4 h-4 text-textMuted absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari kode pesanan, nama penerima, atau nomor HP..."
+                className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-borderMuted/40 focus:outline-none focus:border-primary transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="py-20 flex flex-col items-center justify-center text-primary gap-2">
               <Loader2 className="w-7 h-7 animate-spin" />
@@ -288,10 +466,22 @@ const AdminOrdersPage = () => {
                 </span>
               </div>
 
-              {/* Status Pembayaran Badge */}
-              <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${paymentStatusStyles[selectedOrder.status_pembayaran]?.bg || 'bg-gray-100 text-gray-700'}`}>
-                {paymentStatusStyles[selectedOrder.status_pembayaran]?.label || selectedOrder.status_pembayaran}
-              </span>
+              <div className="flex items-center gap-2">
+                {/* Status Pembayaran Badge */}
+                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${paymentStatusStyles[selectedOrder.status_pembayaran]?.bg || 'bg-gray-100 text-gray-700'}`}>
+                  {paymentStatusStyles[selectedOrder.status_pembayaran]?.label || selectedOrder.status_pembayaran}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadPdfInvoice(selectedOrder)}
+                  title="Unduh Nota Pesanan (PDF)"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/15 text-[11px] font-bold transition-colors cursor-pointer"
+                >
+                  <FileDown className="w-3.5 h-3.5" />
+                  <span>Nota PDF</span>
+                </button>
+              </div>
             </div>
 
             {/* Recipient and Address Info */}
@@ -363,7 +553,7 @@ const AdminOrdersPage = () => {
                   <span>{selectedOrder.status_pembayaran === 'lunas' ? 'Sudah Lunas (Tunai)' : 'Tandai Lunas (Tunai Diterima)'}</span>
                 </button>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className={`grid ${selectedOrder.bukti_pembayaran ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
                   <button
                     type="button"
                     disabled={isUpdating}
@@ -375,22 +565,24 @@ const AdminOrdersPage = () => {
                     }`}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Verifikasi Lunas</span>
+                    <span>{selectedOrder.status_pembayaran === 'lunas' ? 'Sudah Lunas' : 'Verifikasi Lunas'}</span>
                   </button>
 
-                  <button
-                    type="button"
-                    disabled={isUpdating}
-                    onClick={() => handleVerifyPayment('ditolak')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      selectedOrder.status_pembayaran === 'ditolak'
-                        ? 'bg-rose-600 text-white shadow-sm'
-                        : 'bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100'
-                    }`}
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    <span>Tolak Bukti</span>
-                  </button>
+                  {selectedOrder.bukti_pembayaran && (
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() => handleVerifyPayment('ditolak')}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        selectedOrder.status_pembayaran === 'ditolak'
+                          ? 'bg-rose-600 text-white shadow-sm'
+                          : 'bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100'
+                      }`}
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      <span>Tolak Bukti</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>

@@ -4,10 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\Product;
-use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -26,13 +23,13 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_kategori' => 'required|string|max:80|unique:categories',
-            'deskripsi' => 'nullable|string|max:255',
+            'nama_kategori' => 'required|string|max:30|unique:categories',
+            'deskripsi' => 'nullable|string|max:100',
         ], [
             'nama_kategori.required' => 'Nama kategori wajib diisi.',
-            'nama_kategori.max' => 'Nama kategori maksimal 80 karakter.',
+            'nama_kategori.max' => 'Nama kategori maksimal 30 karakter.',
             'nama_kategori.unique' => 'Nama kategori ini sudah terdaftar. Silakan gunakan nama kategori lain.',
-            'deskripsi.max' => 'Deskripsi kategori maksimal 255 karakter.',
+            'deskripsi.max' => 'Deskripsi kategori maksimal 100 karakter.',
         ]);
 
         $category = Category::create($validated);
@@ -49,13 +46,13 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $validated = $request->validate([
-            'nama_kategori' => 'required|string|max:80|unique:categories,nama_kategori,' . $id . ',id_kategori',
-            'deskripsi' => 'nullable|string|max:255',
+            'nama_kategori' => 'required|string|max:30|unique:categories,nama_kategori,' . $id . ',id_kategori',
+            'deskripsi' => 'nullable|string|max:100',
         ], [
             'nama_kategori.required' => 'Nama kategori wajib diisi.',
-            'nama_kategori.max' => 'Nama kategori maksimal 80 karakter.',
+            'nama_kategori.max' => 'Nama kategori maksimal 30 karakter.',
             'nama_kategori.unique' => 'Nama kategori ini sudah terdaftar. Silakan gunakan nama kategori lain.',
-            'deskripsi.max' => 'Deskripsi kategori maksimal 255 karakter.',
+            'deskripsi.max' => 'Deskripsi kategori maksimal 100 karakter.',
         ]);
 
         $category->update($validated);
@@ -70,25 +67,18 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+        $productCount = $category->products()->count();
 
-        DB::transaction(function () use ($category) {
-            // Dapatkan semua ID produk di dalam kategori ini
-            $productIds = $category->products()->pluck('id_produk');
+        if ($productCount > 0) {
+            return response()->json([
+                'message' => "Kategori \"{$category->nama_kategori}\" tidak dapat dihapus karena masih berisi {$productCount} produk. Pindahkan atau hapus produk terlebih dahulu."
+            ], 422);
+        }
 
-            if ($productIds->isNotEmpty()) {
-                // Hapus detail pesanan terkait produk-produk ini jika ada
-                OrderItem::whereIn('id_produk', $productIds)->delete();
-
-                // Hapus semua produk di dalam kategori ini
-                Product::whereIn('id_produk', $productIds)->delete();
-            }
-
-            // Hapus kategori itu sendiri
-            $category->delete();
-        });
+        $category->delete();
 
         return response()->json([
-            'message' => 'Kategori buket beserta produk di dalamnya berhasil dihapus'
+            'message' => 'Kategori buket berhasil dihapus'
         ]);
     }
 }

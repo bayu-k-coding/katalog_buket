@@ -62,7 +62,7 @@ const AdminCategoriesPage = () => {
       console.error('Gagal mengambil daftar kategori:', err);
       const msg =
         err.response?.data?.message ||
-        'Gagal memuat data kategori dari server. Pastikan server backend Laravel aktif.';
+        'Gagal memuat data kategori. Silakan coba muat ulang.';
       setErrorMsg(msg);
     } finally {
       setIsLoading(false);
@@ -162,7 +162,7 @@ const AdminCategoriesPage = () => {
       } else if (err.response?.data?.message) {
         setFormGeneralError(err.response.data.message);
       } else {
-        setFormGeneralError('Terjadi kesalahan saat menyimpan kategori. Silakan periksa koneksi backend.');
+        setFormGeneralError('Gagal menyimpan kategori. Silakan coba lagi.');
       }
     } finally {
       setFormSubmitting(false);
@@ -184,7 +184,7 @@ const AdminCategoriesPage = () => {
     } catch (err) {
       console.error('Gagal menghapus kategori:', err);
       const msg =
-        err.response?.data?.message || 'Gagal menghapus kategori dari database.';
+        err.response?.data?.message || 'Gagal menghapus kategori.';
       alert(msg);
     } finally {
       setIsDeleting(false);
@@ -266,26 +266,11 @@ const AdminCategoriesPage = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="font-playfair text-3xl font-bold text-gray-900">
-              Kategori Buket
-            </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
-              {isSuperAdmin ? (
-                <>
-                  <ShieldCheck className="w-3 h-3 text-purple-600" />
-                  <span>Superadmin Panel</span>
-                </>
-              ) : (
-                <>
-                  <BadgeCheck className="w-3 h-3 text-amber-600" />
-                  <span>Admin Toko Panel</span>
-                </>
-              )}
-            </span>
-          </div>
+          <h1 className="font-playfair text-3xl font-bold text-gray-900">
+            Kategori Buket
+          </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Kelola pengelompokan jenis buket (Wisuda, Uang, Snack, Bunga Kering, dll.) untuk etalase katalog pelanggan
+            Kelola pengelompokan kategori produk buket
           </p>
         </div>
 
@@ -446,7 +431,7 @@ const AdminCategoriesPage = () => {
           <div className="p-16 flex flex-col items-center justify-center gap-3 text-primary">
             <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
             <span className="text-xs font-semibold text-textMuted">
-              Memuat data kategori buket dari database...
+              Memuat daftar kategori...
             </span>
           </div>
         ) : filteredCategories.length === 0 ? (
@@ -633,12 +618,12 @@ const AdminCategoriesPage = () => {
                 <input
                   type="text"
                   required
-                  maxLength={80}
+                  maxLength={30}
                   value={formData.nama_kategori}
                   onChange={(e) =>
                     setFormData({ ...formData, nama_kategori: e.target.value })
                   }
-                  placeholder="Contoh: Buket Wisuda Spesial"
+                  placeholder="Contoh: Buket Wisuda"
                   className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none transition-colors ${
                     formErrors.nama_kategori
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
@@ -650,9 +635,6 @@ const AdminCategoriesPage = () => {
                     {formErrors.nama_kategori[0]}
                   </span>
                 )}
-                <span className="text-[10px] text-textMuted mt-1 block">
-                  Maksimal 80 karakter, harus unik.
-                </span>
               </div>
 
               {/* Deskripsi */}
@@ -662,12 +644,12 @@ const AdminCategoriesPage = () => {
                     Deskripsi Kategori
                   </label>
                   <span className="text-[10px] text-textMuted">
-                    {formData.deskripsi.length}/255 karakter
+                    {formData.deskripsi.length}/100 karakter
                   </span>
                 </div>
                 <textarea
                   rows={3}
-                  maxLength={255}
+                  maxLength={100}
                   value={formData.deskripsi}
                   onChange={(e) =>
                     setFormData({ ...formData, deskripsi: e.target.value })
@@ -724,14 +706,14 @@ const AdminCategoriesPage = () => {
               </h3>
 
               {Number(deleteConfirmCat.products_count || 0) > 0 ? (
-                <div className="p-3.5 bg-rose-50/70 rounded-2xl border border-rose-200/80 text-left text-xs text-rose-900 space-y-1.5">
-                  <div className="flex items-center gap-1.5 font-bold text-rose-700">
+                <div className="p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-left text-xs text-amber-900 space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-800">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <span>Kategori Berisi {deleteConfirmCat.products_count} Produk</span>
+                    <span>Tidak Dapat Dihapus ({deleteConfirmCat.products_count} Produk Aktif)</span>
                   </div>
-                  <p className="text-[11px] text-rose-800 leading-relaxed">
-                    Kategori <strong className="text-gray-900">{deleteConfirmCat.nama_kategori}</strong> saat ini memiliki{' '}
-                    <strong>{deleteConfirmCat.products_count} produk buket</strong>. Menghapus kategori ini akan langsung menghapus kategori beserta seluruh produk buket di dalamnya.
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    Kategori <strong className="text-gray-900">{deleteConfirmCat.nama_kategori}</strong> masih memiliki{' '}
+                    <strong>{deleteConfirmCat.products_count} produk buket</strong>. Pindahkan atau hapus produk tersebut terlebih dahulu agar riwayat transaksi tetap aman.
                   </p>
                 </div>
               ) : (
@@ -749,24 +731,20 @@ const AdminCategoriesPage = () => {
                 disabled={isDeleting}
                 className="flex-1 py-2.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
               >
-                Batal
+                {Number(deleteConfirmCat.products_count || 0) > 0 ? 'Mengerti' : 'Batal'}
               </button>
 
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                className="flex-1 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
-              >
-                {isDeleting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                <span>
-                  {isDeleting
-                    ? 'Menghapus...'
-                    : Number(deleteConfirmCat.products_count || 0) > 0
-                    ? 'Ya, Hapus Semua'
-                    : 'Ya, Hapus'}
-                </span>
-              </button>
+              {Number(deleteConfirmCat.products_count || 0) === 0 && (
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {isDeleting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{isDeleting ? 'Menghapus...' : 'Ya, Hapus'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -302,6 +302,25 @@ class PaymentGatewayController extends Controller
             ]);
         }
 
+        // Pada mode Production, jangan percaya konfirmasi langsung dari client — wajib verifikasi ke server Midtrans
+        if (config('midtrans.is_production')) {
+            if ($order->gateway_order_id || $order->kode_pesanan) {
+                $this->checkMidtransStatusDirectly($order);
+                $order->refresh();
+            }
+
+            if ($order->status_pembayaran === 'lunas') {
+                return response()->json([
+                    'message' => 'Pembayaran telah terverifikasi resmi oleh Midtrans.',
+                    'data' => $order->load(['items.product', 'paymentMethod', 'pelanggan'])
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Pembayaran belum terverifikasi lunas oleh server Midtrans.'
+            ], 422);
+        }
+
         $channel = $request->input('channel', 'Pembayaran Otomatis');
 
         $order->update([

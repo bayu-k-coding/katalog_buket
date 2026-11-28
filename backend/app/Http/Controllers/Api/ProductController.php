@@ -93,7 +93,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'id_kategori' => 'required|exists:categories,id_kategori',
-            'nama_produk' => 'required|string|max:150',
+            'nama_produk' => 'required|string|max:60',
             'deskripsi' => 'nullable|string',
             'harga' => 'required|numeric|min:0',
             'status_tersedia' => 'nullable',
@@ -101,7 +101,7 @@ class ProductController extends Controller
             'id_kategori.required' => 'Kategori buket wajib dipilih.',
             'id_kategori.exists' => 'Kategori buket yang dipilih tidak ditemukan dalam sistem.',
             'nama_produk.required' => 'Nama produk buket wajib diisi.',
-            'nama_produk.max' => 'Nama produk buket maksimal 150 karakter.',
+            'nama_produk.max' => 'Nama produk buket maksimal 60 karakter.',
             'harga.required' => 'Harga produk buket wajib diisi.',
             'harga.numeric' => 'Harga produk harus berupa angka nominal yang valid.',
             'harga.min' => 'Harga produk tidak boleh bernilai kurang dari 0.',
@@ -161,7 +161,6 @@ class ProductController extends Controller
                 'harga' => (float) $product->harga,
                 'foto' => $product->foto,
                 'status_tersedia' => (bool) $product->status_tersedia,
-                'rating' => 5.0,
                 'sold_count' => 0,
             ]
         ], 201);
@@ -173,7 +172,7 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'id_kategori' => 'required|exists:categories,id_kategori',
-            'nama_produk' => 'required|string|max:150',
+            'nama_produk' => 'required|string|max:60',
             'deskripsi' => 'nullable|string',
             'harga' => 'required|numeric|min:0',
             'status_tersedia' => 'nullable',
@@ -181,7 +180,7 @@ class ProductController extends Controller
             'id_kategori.required' => 'Kategori buket wajib dipilih.',
             'id_kategori.exists' => 'Kategori buket yang dipilih tidak ditemukan dalam sistem.',
             'nama_produk.required' => 'Nama produk buket wajib diisi.',
-            'nama_produk.max' => 'Nama produk buket maksimal 150 karakter.',
+            'nama_produk.max' => 'Nama produk buket maksimal 60 karakter.',
             'harga.required' => 'Harga produk buket wajib diisi.',
             'harga.numeric' => 'Harga produk harus berupa angka nominal yang valid.',
             'harga.min' => 'Harga produk tidak boleh bernilai kurang dari 0.',

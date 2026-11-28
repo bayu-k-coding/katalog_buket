@@ -168,16 +168,11 @@ const AdminPaymentMethodsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-playfair text-3xl font-bold text-gray-900">
-              Metode Pembayaran & Rekening
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-              Superadmin Only
-            </span>
-          </div>
+          <h1 className="font-playfair text-3xl font-bold text-gray-900">
+            Metode Pembayaran
+          </h1>
           <p className="text-textMuted text-xs sm:text-sm mt-1">
-            Kelola nomor rekening bank, kode barcode QRIS All-Payment, dan akun transaksi butik
+            Kelola opsi pembayaran yang tersedia untuk pelanggan
           </p>
         </div>
 
@@ -189,15 +184,6 @@ const AdminPaymentMethodsPage = () => {
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Muat Ulang</span>
         </button>
-      </div>
-
-      {/* Superadmin Exclusive Badge Banner */}
-      <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-        <div className="text-xs text-gray-700 leading-relaxed">
-          <strong className="block text-gray-900 font-bold mb-0.5">Hak Akses Khusus Superadmin (Owner Toko)</strong>
-          Perubahan pada nomor rekening, atas nama, maupun gambar kode QRIS di halaman ini akan langsung disinkronkan secara otomatis ke halaman Checkout pelanggan dan Payment Gateway.
-        </div>
       </div>
 
       {successMsg && (
@@ -407,11 +393,11 @@ const AdminPaymentMethodsPage = () => {
                   type="url"
                   value={formData.payment_url}
                   onChange={(e) => setFormData(prev => ({ ...prev, payment_url: e.target.value }))}
-                  placeholder="Contoh: https://link.dana.id/m/intanbuket atau link payment gateway toko"
+                  placeholder="Contoh: https://link.dana.id/m/intanbuket"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-borderMuted/60 text-xs focus:outline-none focus:border-primary font-mono"
                 />
                 <p className="text-[10px] text-textMuted mt-1">
-                  Jika diisi, tombol pembayaran pelanggan akan otomatis mengarahkan ke link ini. Jika dikosongkan, sistem otomatis menggunakan deep link aplikasi / web portal resmi.
+                  Jika diisi, pelanggan akan langsung diarahkan ke tautan pembayaran ini.
                 </p>
               </div>
 
